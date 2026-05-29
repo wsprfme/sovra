@@ -43,8 +43,6 @@ Unlike conventional cloud providers, Sovra is built around **data sovereignty**:
 
 Sovra is in **early design**. The product specification (requirements) is being finalized; architecture and implementation follow. Not ready for production use yet.
 
-See the [specification](./.kiro/specs/decentralized-cloud-platform/) for the detailed requirements driving development.
-
 ## License
 
 Sovra is licensed under the **GNU Affero General Public License v3.0** ([AGPL-3.0](./LICENSE)). If you run a modified version of Sovra as a network service, you must make your modified source available to its users.
