@@ -114,6 +114,7 @@ export type Site = z.infer<typeof siteSchema>;
 
 export const domainStatusSchema = z.enum(['pending', 'active']);
 export const tlsStrategySchema = z.enum(['http-01', 'dns-01', 'cloudflare-origin']);
+export type TlsStrategy = z.infer<typeof tlsStrategySchema>;
 
 export const domainSchema = z.object({
   name: z.string().regex(/^([a-z0-9-]+\.)+[a-z]{2,}$/i, 'must be a valid hostname'),
