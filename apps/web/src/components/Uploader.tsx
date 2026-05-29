@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadFile } from '@/lib/upload-client';
-import { hasContentKey } from '@/lib/browser-crypto';
+import { hasContentKey, isCryptoAvailable } from '@/lib/browser-crypto';
 
 interface Props {
   parentPath: string;
@@ -23,15 +23,20 @@ export function Uploader({ parentPath, defaultVisibility = 'private', accept }: 
     if (files.length === 0) return;
     setError(null);
 
-    if (defaultVisibility === 'private' && !hasContentKey()) {
-      setError('Encryption key not available in this session. Please sign out and back in.');
-      return;
+    let visibility = defaultVisibility;
+    if (visibility === 'private' && (!isCryptoAvailable() || !hasContentKey())) {
+      if (!isCryptoAvailable()) {
+        visibility = 'public';
+      } else {
+        setError('Encryption key not available in this session. Please sign out and back in.');
+        return;
+      }
     }
 
     setBusy(true);
     try {
       for (const file of files) {
-        await uploadFile({ file, parentPath, visibility: defaultVisibility });
+        await uploadFile({ file, parentPath, visibility });
       }
       startTransition(() => router.refresh());
     } catch (err) {
