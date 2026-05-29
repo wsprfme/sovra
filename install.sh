@@ -4,15 +4,17 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/wsprfme/sovra/main/install.sh | bash
 #
-# This downloads Sovra, installs its dependencies (Node.js, pnpm, Caddy), builds
-# the platform, configures systemd services, and prints the URL to finish setup.
+# Downloads Sovra, installs its dependencies (Node.js, pnpm, Caddy), builds the
+# platform, configures systemd services, and prints the URL to finish setup.
 #
-# Piping a script from the internet into a shell is convenient but asks you to
-# trust the source. To review first instead:
+# Piping a script from the internet into a shell asks you to trust the source.
+# To review first instead:
 #
 #   curl -fsSL https://raw.githubusercontent.com/wsprfme/sovra/main/install.sh -o install.sh
 #   less install.sh
 #   sudo bash install.sh
+#
+# Verbose flag: pass --verbose (or SOVRA_VERBOSE=1) to stream all output.
 #
 set -euo pipefail
 
@@ -24,9 +26,60 @@ SOVRA_DATA="${SOVRA_DATA:-/var/lib/sovra}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
 SOVRA_CORE_PORT="${SOVRA_CORE_PORT:-8787}"
 SOVRA_WEB_PORT="${SOVRA_WEB_PORT:-3000}"
+SOVRA_VERBOSE="${SOVRA_VERBOSE:-0}"
+LOG_FILE="${SOVRA_LOG:-/var/log/sovra-install.log}"
 
-log() { printf '\033[1;34m[sovra]\033[0m %s\n' "$1"; }
-err() { printf '\033[1;31m[sovra]\033[0m %s\n' "$1" >&2; }
+C_BLUE='\033[1;34m'
+C_GREEN='\033[1;32m'
+C_RED='\033[1;31m'
+C_DIM='\033[2m'
+C_OFF='\033[0m'
+
+for arg in "$@"; do
+	case "$arg" in
+	--verbose | -v) SOVRA_VERBOSE=1 ;;
+	esac
+done
+
+banner() {
+	printf '%b' "$C_BLUE"
+	cat <<'ART'
+
+   ███████╗ ██████╗ ██╗   ██╗██████╗  █████╗
+   ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔══██╗
+   ███████╗██║   ██║██║   ██║██████╔╝███████║
+   ╚════██║██║   ██║╚██╗ ██╔╝██╔══██╗██╔══██║
+   ███████║╚██████╔╝ ╚████╔╝ ██║  ██║██║  ██║
+   ╚══════╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝╚═╝  ╚═╝
+ART
+	printf '%b' "$C_OFF"
+	printf '   %bYour sovereign platform.%b\n\n' "$C_DIM" "$C_OFF"
+}
+
+step() { printf '%b▸%b %s\n' "$C_BLUE" "$C_OFF" "$1"; }
+ok() { printf '  %b✓%b %s\n' "$C_GREEN" "$C_OFF" "$1"; }
+err() { printf '%b✗%b %s\n' "$C_RED" "$C_OFF" "$1" >&2; }
+
+run() {
+	local desc="$1"
+	shift
+	if [ "$SOVRA_VERBOSE" = "1" ]; then
+		step "$desc"
+		"$@"
+		return
+	fi
+	printf '  %b…%b %s' "$C_DIM" "$C_OFF" "$desc"
+	if "$@" >>"$LOG_FILE" 2>&1; then
+		printf '\r  %b✓%b %s\033[K\n' "$C_GREEN" "$C_OFF" "$desc"
+	else
+		printf '\r  %b✗%b %s\033[K\n' "$C_RED" "$C_OFF" "$desc"
+		err "Step failed. Last lines of $LOG_FILE:"
+		tail -n 25 "$LOG_FILE" >&2 || true
+		exit 1
+	fi
+}
+
+runc() { run "$1" bash -c "$2"; }
 
 require_root() {
 	if [ "$(id -u)" -ne 0 ]; then
@@ -43,7 +96,6 @@ detect_os() {
 	. /etc/os-release
 	if [ "${ID:-}" != "ubuntu" ] && [ "${ID_LIKE:-}" != "debian" ]; then
 		err "This installer targets Ubuntu/Debian. Detected: ${ID:-unknown}."
-		err "Install manually on other distributions (see README)."
 		exit 1
 	fi
 }
@@ -57,44 +109,35 @@ detect_ip() {
 	printf '%s' "$ip"
 }
 
-install_prereqs() {
-	log "Installing base packages"
-	apt-get update -y
-	apt-get install -y curl git ca-certificates gnupg xxd
-}
-
 install_node() {
 	if command -v node >/dev/null 2>&1 && [ "$(node -v | cut -c2- | cut -d. -f1)" -ge "$NODE_MAJOR" ]; then
-		log "Node.js $(node -v) already present."
+		ok "Node.js $(node -v) already present"
 	else
-		log "Installing Node.js ${NODE_MAJOR}.x"
-		curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash -
-		apt-get install -y nodejs
+		runc "Installing Node.js ${NODE_MAJOR}.x" \
+			"curl -fsSL 'https://deb.nodesource.com/setup_${NODE_MAJOR}.x' | bash - && apt-get install -y nodejs"
 	fi
-	if ! command -v pnpm >/dev/null 2>&1; then
-		log "Installing pnpm"
-		npm install -g pnpm@9
+	if command -v pnpm >/dev/null 2>&1; then
+		ok "pnpm $(pnpm -v) already present"
+	else
+		run "Installing pnpm" npm install -g pnpm@9
 	fi
 }
 
 install_caddy() {
 	if command -v caddy >/dev/null 2>&1; then
-		log "Caddy already present."
+		ok "Caddy already present"
 		return
 	fi
-	log "Installing Caddy"
-	apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
-	curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' |
-		gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-	curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
-		>/etc/apt/sources.list.d/caddy-stable.list
-	apt-get update -y
-	apt-get install -y caddy
+	runc "Installing Caddy" "
+		apt-get install -y debian-keyring debian-archive-keyring apt-transport-https &&
+		curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg &&
+		curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list &&
+		apt-get update -y &&
+		apt-get install -y caddy"
 }
 
 create_user() {
 	if ! id "$SOVRA_USER" >/dev/null 2>&1; then
-		log "Creating service user '$SOVRA_USER'"
 		useradd --system --home "$SOVRA_HOME" --shell /usr/sbin/nologin "$SOVRA_USER"
 	fi
 	mkdir -p "$SOVRA_HOME" "$SOVRA_DATA"
@@ -102,29 +145,26 @@ create_user() {
 
 fetch_source() {
 	if [ -d "$SOVRA_HOME/.git" ]; then
-		log "Updating existing checkout in $SOVRA_HOME"
-		git -C "$SOVRA_HOME" fetch --depth 1 origin "$SOVRA_BRANCH"
-		git -C "$SOVRA_HOME" reset --hard "origin/$SOVRA_BRANCH"
+		runc "Updating source in $SOVRA_HOME" \
+			"git -C '$SOVRA_HOME' fetch --depth 1 origin '$SOVRA_BRANCH' && git -C '$SOVRA_HOME' reset --hard 'origin/$SOVRA_BRANCH'"
 	else
-		log "Cloning $SOVRA_REPO ($SOVRA_BRANCH) into $SOVRA_HOME"
-		rm -rf "$SOVRA_HOME"
-		git clone --depth 1 --branch "$SOVRA_BRANCH" "$SOVRA_REPO" "$SOVRA_HOME"
+		runc "Cloning $SOVRA_REPO" \
+			"rm -rf '$SOVRA_HOME' && git clone --depth 1 --branch '$SOVRA_BRANCH' '$SOVRA_REPO' '$SOVRA_HOME'"
 	fi
 	chown -R "$SOVRA_USER:$SOVRA_USER" "$SOVRA_HOME" "$SOVRA_DATA"
 }
 
 build_platform() {
-	log "Installing dependencies and building (this can take a few minutes)"
-	sudo -u "$SOVRA_USER" bash -lc "cd '$SOVRA_HOME' && pnpm install --frozen-lockfile && pnpm build"
+	run "Installing dependencies and building (a few minutes)" \
+		sudo -u "$SOVRA_USER" bash -lc "cd '$SOVRA_HOME' && pnpm install --frozen-lockfile && pnpm build"
 }
 
 generate_env() {
 	local env_file="$SOVRA_HOME/.env"
 	if [ -f "$env_file" ]; then
-		log "Environment file already exists, keeping it."
+		ok "Keeping existing environment file"
 		return
 	fi
-	log "Generating environment with a fresh internal token"
 	local token ip
 	token="$(head -c 32 /dev/urandom | xxd -p -c 64)"
 	ip="$(detect_ip)"
@@ -143,10 +183,33 @@ NODE_ENV=production
 EOF
 	chown "$SOVRA_USER:$SOVRA_USER" "$env_file"
 	chmod 600 "$env_file"
+	ok "Generated $env_file with a fresh internal token"
+}
+
+write_caddyfile() {
+	install -d -o "$SOVRA_USER" -g "$SOVRA_USER" /etc/caddy
+	cat >/etc/caddy/Caddyfile <<EOF
+{
+	admin 127.0.0.1:2019
+	on_demand_tls {
+		ask http://127.0.0.1:$SOVRA_CORE_PORT/_tls/authorize
+	}
+}
+
+:80 {
+	reverse_proxy 127.0.0.1:$SOVRA_WEB_PORT
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy 127.0.0.1:$SOVRA_WEB_PORT
+}
+EOF
 }
 
 install_services() {
-	log "Installing systemd services"
 	cat >/etc/systemd/system/sovra-core.service <<EOF
 [Unit]
 Description=Sovra Core Engine
@@ -183,29 +246,34 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-	install -d -o "$SOVRA_USER" -g "$SOVRA_USER" /etc/caddy
-	cp "$SOVRA_HOME/installer/Caddyfile" /etc/caddy/Caddyfile
-	systemctl daemon-reload
-	systemctl enable --now sovra-core.service sovra-web.service caddy
+	write_caddyfile
+	run "Configuring services" systemctl daemon-reload
+	run "Starting Sovra core" bash -c "systemctl enable --now sovra-core.service && systemctl restart sovra-core.service"
+	run "Starting Sovra dashboard" bash -c "systemctl enable --now sovra-web.service && systemctl restart sovra-web.service"
+	run "Reloading Caddy" bash -c "systemctl enable caddy && systemctl restart caddy"
 }
 
 print_access() {
 	local ip
 	ip="$(detect_ip)"
 	printf '\n'
-	log "Sovra is installed and running."
-	log "Open the dashboard to create your admin account:"
-	printf '\n    \033[1;32mhttp://%s\033[0m\n\n' "${ip:-your-server-ip}"
-	log "You are on plain HTTP until you set a primary domain in the dashboard."
-	log "Logs:    journalctl -u sovra-core -u sovra-web -f"
-	log "Config:  $SOVRA_HOME/.env"
+	ok "Sovra is installed and running."
+	printf '\n   Open the dashboard to create your admin account:\n'
+	printf '\n      %bhttp://%s%b\n\n' "$C_GREEN" "${ip:-your-server-ip}" "$C_OFF"
+	printf '   %bYou are on plain HTTP until you set a primary domain.%b\n' "$C_DIM" "$C_OFF"
+	printf '   %bLogs:%b      journalctl -u sovra-core -u sovra-web -f\n' "$C_DIM" "$C_OFF"
+	printf '   %bConfig:%b    %s/.env\n' "$C_DIM" "$C_OFF" "$SOVRA_HOME"
+	printf '   %bUninstall:%b curl -fsSL https://raw.githubusercontent.com/wsprfme/sovra/main/uninstall.sh | bash\n\n' "$C_DIM" "$C_OFF"
 }
 
 main() {
 	require_root
 	detect_os
-	log "Installing Sovra into $SOVRA_HOME (data in $SOVRA_DATA)"
-	install_prereqs
+	: >"$LOG_FILE" || LOG_FILE="$(mktemp)"
+	banner
+	step "Installing Sovra into $SOVRA_HOME (data in $SOVRA_DATA)"
+	run "Updating package lists" apt-get update -y
+	run "Installing base packages" apt-get install -y curl git ca-certificates gnupg xxd
 	install_node
 	install_caddy
 	create_user

@@ -6,22 +6,19 @@
 }
 
 # First-run / no-domain access: serve the dashboard over plain HTTP on the
-# server's IP (or any hostname not otherwise matched). Once the wizard sets a
-# primary domain, that hostname gets automatic HTTPS via the block below.
+# server's IP (or any hostname not otherwise matched). Once you set a primary
+# domain in the dashboard, that hostname gets automatic HTTPS via the catch-all
+# below (Caddy issues a cert on demand, gated by the core authorize endpoint).
 :80 {
 	reverse_proxy 127.0.0.1:3000
 }
 
-# Primary dashboard domain (set SOVRA_PRIMARY_DOMAIN, then reload caddy).
-{$SOVRA_PRIMARY_DOMAIN:localhost} {
-	reverse_proxy 127.0.0.1:3000
-}
-
-# Catch-all for hosted custom domains. On-demand TLS is gated by the core
-# `ask` endpoint so certificates are only issued for verified, active domains.
+# Custom domains: the dashboard's primary domain and any hosted sites. On-demand
+# TLS is gated by the core `ask` endpoint so certificates are only issued for
+# domains Sovra has verified.
 https:// {
 	tls {
 		on_demand
 	}
-	reverse_proxy 127.0.0.1:8787
+	reverse_proxy 127.0.0.1:3000
 }
