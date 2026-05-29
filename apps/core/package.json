@@ -19,10 +19,12 @@
     "@sovra/cid": "workspace:*",
     "@sovra/contracts": "workspace:*",
     "@sovra/crypto": "workspace:*",
+    "@sovra/extension-api": "workspace:*",
     "@sovra/site-manifest": "workspace:*",
     "better-sqlite3": "^11.7.0",
     "drizzle-orm": "^0.38.3",
-    "fastify": "^5.2.1"
+    "fastify": "^5.2.1",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

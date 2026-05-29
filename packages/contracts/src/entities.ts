@@ -5,6 +5,7 @@ export const cidSchema = z
   .regex(/^b3-[0-9a-f]{64}$/, 'CID must be of the form b3-<64 hex chars>');
 
 export const contentVisibilitySchema = z.enum(['public', 'private']);
+export type ContentVisibility = z.infer<typeof contentVisibilitySchema>;
 
 export const encMetaSchema = z.object({
   algo: z.literal('AES-256-GCM'),
