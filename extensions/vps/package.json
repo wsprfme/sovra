@@ -1,0 +1,32 @@
+{
+  "name": "@sovra/ext-vps",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sovra/contracts": "workspace:*",
+    "@sovra/core": "workspace:*",
+    "drizzle-orm": "^0.38.3",
+    "ssh2": "^1.16.0"
+  },
+  "devDependencies": {
+    "@types/ssh2": "^1.15.1",
+    "better-sqlite3": "^11.7.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
