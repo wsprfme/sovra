@@ -146,6 +146,20 @@ export function registerInternalRoutes(app: FastifyInstance, services: Services)
     return { extensions: services.extensions.list() };
   });
 
+  app.all('/internal/ext/:id/*', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const { id } = req.params as { id: string; '*': string };
+    const wildcard = (req.params as Record<string, string>)['*'] ?? '';
+    const path = '/' + wildcard;
+    const method = req.method.toLowerCase() as 'get' | 'post' | 'delete';
+    return services.extensions.dispatch(id, method, path, {
+      params: {},
+      query: req.query as Record<string, string>,
+      body: req.body ?? null,
+      headers: req.headers as Record<string, string>,
+    });
+  });
+
   app.get('/internal/audit', async (req) => {
     requireAccount(services, req.headers as Record<string, unknown>);
     const action = (req.query as { action?: string }).action;

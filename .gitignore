@@ -59,3 +59,5 @@ caddy/config/
 *.spec.ts
 *.spec.tsx
 **/__tests__/**
+.next/
+next-env.d.ts
