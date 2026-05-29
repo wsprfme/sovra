@@ -5,3 +5,7 @@ export { openDatabase, type Db, type DbHandle } from './db/index.js';
 export * as schema from './db/schema.js';
 export { ContentStore } from './storage/content-store.js';
 export { ProxyController, CaddyAdminClient, RegistryDomainAuthorizer } from './proxy/index.js';
+export { ExtensionRegistry, type Capabilities, type AuditSink } from './extensions/registry.js';
+export { ExtensionHost, type CatalogListing } from './extensions/host.js';
+export { createScopedDb, tablePrefix } from './extensions/scoped-db.js';
+export { runMigrations } from './extensions/migrator.js';

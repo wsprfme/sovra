@@ -14,21 +14,15 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@sovra/cid": "workspace:*",
     "@sovra/contracts": "workspace:*",
-    "@sovra/core": "workspace:*",
     "@sovra/extension-api": "workspace:*",
-    "@sovra/site-manifest": "workspace:*",
-    "drizzle-orm": "^0.38.3"
+    "@sovra/site-manifest": "workspace:*"
   },
   "devDependencies": {
-    "better-sqlite3": "^11.7.0",
-    "fast-check": "^3.23.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

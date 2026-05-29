@@ -77,10 +77,22 @@ export const extensionManifestSchema = z.object({
   name: z.string().min(1),
   version: z.string().regex(/^\d+\.\d+\.\d+/, 'version must be semver'),
   engineVersion: z.string().min(1),
+  description: z.string().default(''),
+  author: z.string().default(''),
   permissions: z.array(permissionSchema),
   contributes: z
     .object({
       apiNamespace: z.string().regex(/^[a-z][a-z0-9-]*$/),
+      nav: z
+        .array(
+          z.object({
+            id: z.string().min(1),
+            title: z.string().min(1),
+            icon: z.string().default('square'),
+            panel: z.string().min(1),
+          }),
+        )
+        .default([]),
       uiPanels: z
         .array(
           z.object({
@@ -95,11 +107,23 @@ export const extensionManifestSchema = z.object({
 });
 export type ExtensionManifest = z.infer<typeof extensionManifestSchema>;
 
+export const extensionNavSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  icon: z.string(),
+  panel: z.string(),
+});
+export type ExtensionNav = z.infer<typeof extensionNavSchema>;
+
 export const extensionRecordSchema = z.object({
   id: z.string(),
+  name: z.string(),
   version: z.string(),
+  description: z.string(),
+  author: z.string(),
   status: extensionStatusSchema,
   permissions: z.array(permissionSchema),
+  nav: z.array(extensionNavSchema).default([]),
   installedAt: z.number().int().nonnegative(),
 });
 export type ExtensionRecord = z.infer<typeof extensionRecordSchema>;

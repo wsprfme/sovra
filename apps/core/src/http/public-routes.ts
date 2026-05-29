@@ -1,34 +1,16 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { SovraError } from '@sovra/contracts';
 import type { Services } from '../services.js';
 
+function isControlHost(req: FastifyRequest, services: Services): boolean {
+  const host = (req.headers.host ?? '').split(':')[0] ?? '';
+  if (host === '' || host === 'localhost' || host === '127.0.0.1') return true;
+  if (services.config.serverIp && host === services.config.serverIp) return true;
+  if (services.config.primaryDomain && host === services.config.primaryDomain) return true;
+  return false;
+}
+
 export function registerPublicRoutes(app: FastifyInstance, services: Services): void {
-  app.post('/upload', async (req) => {
-    const session = req.headers['x-sovra-session'];
-    services.auth.requireSession(typeof session === 'string' ? session : undefined);
-
-    const body = req.body as {
-      parentPath?: string;
-      name?: string;
-      mime?: string;
-      visibility?: 'public' | 'private';
-      contentBase64?: string;
-      encMeta?: unknown;
-    };
-    if (!body.name || !body.contentBase64) {
-      throw new SovraError('upload_incomplete', 'name and content required');
-    }
-    const content = new Uint8Array(Buffer.from(body.contentBase64, 'base64'));
-    return services.storage.upload({
-      parentPath: body.parentPath ?? '/',
-      name: body.name,
-      content,
-      mime: body.mime ?? 'application/octet-stream',
-      visibility: body.visibility,
-      encMeta: (body.encMeta as never) ?? null,
-    });
-  });
-
   app.get('/blob/:cid', async (req, reply) => {
     const { cid } = req.params as { cid: string };
     const bytes = await services.store.get(cid);
@@ -36,11 +18,23 @@ export function registerPublicRoutes(app: FastifyInstance, services: Services): 
     return reply.send(Buffer.from(bytes));
   });
 
-  app.get('/s/:token', async (req) => {
-    const { token } = req.params as { token: string };
-    const identity = (req.query as { identity?: string }).identity;
-    const resolved = services.shares.resolve(token, identity);
-    return resolved;
+  app.all('/ext/:id/*', async (req) => {
+    const { id } = req.params as { id: string; '*': string };
+    const wildcard = (req.params as Record<string, string>)['*'] ?? '';
+    const path = '/' + wildcard;
+    const method = req.method.toLowerCase() as 'get' | 'post' | 'delete';
+    return services.extensions.registry.dispatch(
+      id,
+      method,
+      path,
+      {
+        params: {},
+        query: req.query as Record<string, string>,
+        body: req.body ?? null,
+        headers: req.headers as Record<string, string>,
+      },
+      { allowPublicOnly: true },
+    );
   });
 
   app.get('/_tls/authorize', async (req, reply) => {
@@ -49,5 +43,34 @@ export function registerPublicRoutes(app: FastifyInstance, services: Services): 
       return reply.code(200).send('ok');
     }
     return reply.code(403).send('denied');
+  });
+
+  app.setNotFoundHandler(async (req: FastifyRequest, reply: FastifyReply) => {
+    if (isControlHost(req, services)) {
+      reply.code(404).send(new SovraError('not_found', 'not found').toJSON());
+      return;
+    }
+    const host = (req.headers.host ?? '').split(':')[0] ?? '';
+    const url = new URL(req.url, 'http://placeholder');
+    const result = await services.extensions.registry.hostDispatch({
+      host,
+      path: url.pathname,
+      params: {},
+      query: Object.fromEntries(url.searchParams) as Record<string, string>,
+      body: null,
+      headers: req.headers as Record<string, string>,
+    });
+    if (!result) {
+      reply.code(404).send(new SovraError('not_found', `no site bound to ${host}`).toJSON());
+      return;
+    }
+    if (result.headers) {
+      for (const [k, v] of Object.entries(result.headers)) reply.header(k, v);
+    }
+    if (result.body instanceof Uint8Array || Buffer.isBuffer(result.body)) {
+      reply.code(result.status).send(Buffer.from(result.body as Uint8Array));
+      return;
+    }
+    reply.code(result.status).send(result.body);
   });
 }

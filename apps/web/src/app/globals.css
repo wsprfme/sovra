@@ -253,3 +253,150 @@ th {
     padding: 1.2rem 1rem;
   }
 }
+
+.nav-section {
+  margin: 1rem 0.5rem 0.3rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.nav-link svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.sidebar-note {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.6rem;
+  line-height: 1.35;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.stat-title {
+  font-weight: 600;
+}
+
+.notice {
+  border-color: #5b4a1f;
+  background: #221d11;
+}
+
+.ext-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+}
+
+.ext-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.ext-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.ext-perms {
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+
+.perm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.perm-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.83rem;
+  color: var(--text);
+}
+
+.perm-list li svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.ext-actions {
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.iframe-host {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.ext-frame {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+  display: block;
+}
+
+.vps-status {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

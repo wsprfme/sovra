@@ -1,15 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import { eq } from 'drizzle-orm';
 import { SovraError } from '@sovra/contracts';
-import { type Db, schema } from '@sovra/core';
+import type { ScopedDb, SecretsCapability } from '@sovra/extension-api';
 import type { SshClient, SshConnectOptions, SshSession, SshShellChannel } from './ssh.js';
-
-const { vpsConnection } = schema;
-
-export interface Encryptor {
-  encrypt(plaintext: string): string;
-  decrypt(ciphertext: string): string;
-}
 
 export interface VpsCredentials {
   password?: string;
@@ -21,6 +13,14 @@ export interface AddConnectionInput {
   port?: number;
   username: string;
   credentials: VpsCredentials;
+}
+
+export interface VpsConnectionInfo {
+  id: string;
+  host: string;
+  port: number;
+  username: string;
+  createdAt: number;
 }
 
 export interface VpsStatus {
@@ -35,40 +35,57 @@ interface FailureWindow {
   firstAt: number;
 }
 
+interface ConnectionRow {
+  id: string;
+  host: string;
+  port: number;
+  username: string;
+  cred_enc: string;
+  created_at: number;
+}
+
 const STATUS_COMMAND =
   'uptime && echo "---" && cat /proc/loadavg && echo "---" && free -m | sed -n 2p && echo "---" && df -h / | sed -n 2p';
 
 export class VpsService {
   private failures = new Map<string, FailureWindow>();
+  private readonly connections: string;
 
   constructor(
-    private readonly db: Db,
+    private readonly db: ScopedDb,
     private readonly ssh: SshClient,
-    private readonly enc: Encryptor,
+    private readonly enc: SecretsCapability,
     private readonly now: () => number = Date.now,
-  ) {}
+  ) {
+    this.connections = db.table('connection');
+  }
 
   addConnection(input: AddConnectionInput): { id: string } {
     const id = randomBytes(12).toString('hex');
     const credEnc = this.enc.encrypt(JSON.stringify(input.credentials));
-    this.db
-      .insert(vpsConnection)
-      .values({
-        id,
-        host: input.host,
-        port: input.port ?? 22,
-        username: input.username,
-        credEnc,
-        createdAt: this.now(),
-      })
-      .run();
+    this.db.run(
+      `INSERT INTO ${this.connections} (id, host, port, username, cred_enc, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, input.host, input.port ?? 22, input.username, credEnc, this.now()],
+    );
     return { id };
   }
 
+  listConnections(): VpsConnectionInfo[] {
+    return this.db
+      .all<ConnectionRow>(`SELECT * FROM ${this.connections} ORDER BY created_at DESC`)
+      .map((r) => ({
+        id: r.id,
+        host: r.host,
+        port: r.port,
+        username: r.username,
+        createdAt: r.created_at,
+      }));
+  }
+
   private connectOptions(id: string): SshConnectOptions {
-    const row = this.db.select().from(vpsConnection).where(eq(vpsConnection.id, id)).get();
+    const row = this.db.get<ConnectionRow>(`SELECT * FROM ${this.connections} WHERE id = ?`, [id]);
     if (!row) throw new SovraError('not_found', `vps connection ${id} not found`);
-    const creds = JSON.parse(this.enc.decrypt(row.credEnc)) as VpsCredentials;
+    const creds = JSON.parse(this.enc.decrypt(row.cred_enc)) as VpsCredentials;
     return {
       host: row.host,
       port: row.port,
@@ -128,7 +145,11 @@ export class VpsService {
     }
   }
 
-  async serviceAction(id: string, action: 'start' | 'stop' | 'restart', serviceName: string): Promise<number> {
+  async serviceAction(
+    id: string,
+    action: 'start' | 'stop' | 'restart',
+    serviceName: string,
+  ): Promise<number> {
     if (!/^[a-zA-Z0-9._@-]+$/.test(serviceName)) {
       throw new SovraError('validation_error', 'invalid service name');
     }

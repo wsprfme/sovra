@@ -64,7 +64,7 @@ export function buildApp(services: Services): FastifyInstance {
 
   const publicLimiter = new RateLimiter(services.config.rateLimit);
   const isPublicLimited = (url: string): boolean =>
-    url.startsWith('/s/') || url.startsWith('/upload') || url.startsWith('/internal/login');
+    url.startsWith('/ext/') || url.startsWith('/internal/login');
 
   app.addHook('onRequest', async (req: FastifyRequest, reply: FastifyReply) => {
     if (!isPublicLimited(req.url)) return;

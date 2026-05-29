@@ -5,6 +5,7 @@ import { createServices } from './services.js';
 async function main(): Promise<void> {
   const config = loadConfig();
   const services = createServices(config);
+  await services.extensions.restore();
   const app = buildApp(services);
 
   const shutdown = async (): Promise<void> => {

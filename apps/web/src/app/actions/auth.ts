@@ -21,7 +21,7 @@ export async function setupAction(_prev: ActionState, formData: FormData): Promi
   } catch (e) {
     return { error: SovraError.is(e) ? e.message : 'Setup failed' };
   }
-  redirect('/files');
+  redirect('/dashboard');
 }
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -34,7 +34,7 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
   } catch (e) {
     return { error: SovraError.is(e) ? e.message : 'Login failed' };
   }
-  redirect('/files');
+  redirect('/dashboard');
 }
 
 export async function logoutAction(): Promise<void> {

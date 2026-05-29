@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getSessionToken } from '@/lib/session';
 import { coreClient } from '@/lib/core-client';
 import { Sidebar } from '@/components/Sidebar';
+import { buildExtensionNav } from '@/lib/nav';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,11 +14,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   if (!token) redirect('/login');
 
   const { extensions } = await coreClient.listExtensions();
-  const enabled = extensions.filter((e) => e.status === 'enabled').map((e) => e.id);
+  const extensionNav = buildExtensionNav(extensions);
 
   return (
     <div className="shell">
-      <Sidebar enabledExtensions={enabled} />
+      <Sidebar primaryDomain={status.primaryDomain} extensionNav={extensionNav} />
       <main className="main">{children}</main>
     </div>
   );

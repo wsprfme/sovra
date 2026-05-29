@@ -2,7 +2,7 @@
   "name": "sovra",
   "version": "0.1.0",
   "private": true,
-  "description": "Your sovereign cloud. Self-hosted, modular, and private by design.",
+  "description": "Your sovereign platform. A self-hosted app platform: a lean kernel plus an ecosystem of extensions.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "engines": {
@@ -11,10 +11,10 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "turbo run build",
-    "test": "turbo run test",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "dev": "turbo run dev"
+    "dev": "turbo run dev",
+    "package:extensions": "node scripts/package-extensions.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
