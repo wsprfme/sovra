@@ -1,0 +1,21 @@
+{
+	admin 127.0.0.1:2019
+	on_demand_tls {
+		ask http://127.0.0.1:8787/_tls/authorize
+	}
+}
+
+# Primary dashboard domain (set by setup wizard via the SOVRA_PRIMARY_DOMAIN env).
+# Falls back to serving on all hostnames during first-run setup.
+{$SOVRA_PRIMARY_DOMAIN:localhost} {
+	reverse_proxy 127.0.0.1:3000
+}
+
+# Catch-all for hosted custom domains. On-demand TLS is gated by the core
+# `ask` endpoint so certificates are only issued for verified, active domains.
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy 127.0.0.1:8787
+}

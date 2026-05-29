@@ -20,6 +20,7 @@
   "dependencies": {
     "@sovra/contracts": "workspace:*",
     "@sovra/core": "workspace:*",
+    "@sovra/extension-api": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "ssh2": "^1.16.0"
   },

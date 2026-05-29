@@ -1,0 +1,11 @@
+{
+  "id": "vps",
+  "name": "VPS Control",
+  "version": "0.1.0",
+  "engineVersion": "^0.1.0",
+  "permissions": ["net:outbound:ssh"],
+  "contributes": {
+    "apiNamespace": "vps",
+    "uiPanels": [{ "id": "servers", "title": "Servers", "entry": "ui/servers.html" }]
+  }
+}

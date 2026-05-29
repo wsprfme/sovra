@@ -1,0 +1,11 @@
+{
+  "id": "web-hosting",
+  "name": "Web Hosting",
+  "version": "0.1.0",
+  "engineVersion": "^0.1.0",
+  "permissions": ["storage:read", "storage:write", "proxy:manage", "net:outbound:dns"],
+  "contributes": {
+    "apiNamespace": "web-hosting",
+    "uiPanels": [{ "id": "sites", "title": "Sites", "entry": "ui/sites.html" }]
+  }
+}

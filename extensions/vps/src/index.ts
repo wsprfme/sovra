@@ -13,3 +13,4 @@ export {
   type SshConnectOptions,
   type SshExecResult,
 } from './ssh.js';
+export { createVpsExtension, type VpsDeps } from './extension.js';

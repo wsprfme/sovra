@@ -21,6 +21,7 @@
     "@sovra/cid": "workspace:*",
     "@sovra/contracts": "workspace:*",
     "@sovra/core": "workspace:*",
+    "@sovra/extension-api": "workspace:*",
     "@sovra/site-manifest": "workspace:*",
     "drizzle-orm": "^0.38.3"
   },
