@@ -1,5 +1,5 @@
-import { SovraError } from '@sovra/contracts';
-import type { ExtensionContext, ExtensionRouter, SovraExtension } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ExtensionContext, ExtensionRouter, SovraExtension } from '@sovrasdk/extension-api';
 import { HostingService } from './hosting-service.js';
 import { DomainService } from './domain-service.js';
 import { CloudflareIntegration } from './cloudflare.js';

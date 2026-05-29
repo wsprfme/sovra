@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from 'node:crypto';
 import { eq } from 'drizzle-orm';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import type { Db } from '../db/index.js';
 import { session } from '../db/schema.js';
 

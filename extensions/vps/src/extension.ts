@@ -1,5 +1,5 @@
-import { SovraError } from '@sovra/contracts';
-import type { ExtensionContext, ExtensionRouter, SovraExtension } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ExtensionContext, ExtensionRouter, SovraExtension } from '@sovrasdk/extension-api';
 import { VpsService } from './vps-service.js';
 import { Ssh2Client } from './ssh.js';
 import { migrations } from './migrations.js';

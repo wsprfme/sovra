@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
-import { SovraError } from '@sovra/contracts';
-import type { Migration, ScopedDb } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { Migration, ScopedDb } from '@sovrasdk/extension-api';
 import type { Db } from '../db/index.js';
 import { extMigration } from '../db/schema.js';
 

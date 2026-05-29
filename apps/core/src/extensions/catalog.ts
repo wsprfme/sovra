@@ -1,5 +1,5 @@
-import type { ExtensionManifest } from '@sovra/contracts';
-import type { SovraExtension } from '@sovra/extension-api';
+import type { ExtensionManifest } from '@sovrasdk/contracts';
+import type { SovraExtension } from '@sovrasdk/extension-api';
 import { createStorageExtension, storageManifest } from '@sovra/ext-storage';
 import { createWebHostingExtension, webHostingManifest } from '@sovra/ext-web-hosting';
 import { createVpsExtension, vpsManifest } from '@sovra/ext-vps';

@@ -1,4 +1,4 @@
-import type { Migration } from '@sovra/extension-api';
+import type { Migration } from '@sovrasdk/extension-api';
 
 export const migrations: Migration[] = [
   {

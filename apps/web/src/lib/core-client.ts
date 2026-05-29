@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { SovraError, type SovraErrorShape, type ExtensionRecord } from '@sovra/contracts';
+import { SovraError, type SovraErrorShape, type ExtensionRecord } from '@sovrasdk/contracts';
 
 const CORE_URL = process.env.SOVRA_CORE_URL ?? 'http://127.0.0.1:8787';
 const INTERNAL_TOKEN = process.env.SOVRA_INTERNAL_TOKEN ?? '';

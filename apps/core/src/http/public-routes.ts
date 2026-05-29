@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import type { Services } from '../services.js';
 
 function isControlHost(req: FastifyRequest, services: Services): boolean {

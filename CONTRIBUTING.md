@@ -14,7 +14,7 @@ The repo is a pnpm + Turborepo monorepo:
 
 - `apps/core` — Fastify kernel (identity, content store, extension host, proxy, audit, backups)
 - `apps/web` — Next.js dashboard (BFF)
-- `packages/*` — shared libraries, including `@sovra/extension-api` (the extension SDK)
+- `packages/*` — shared libraries, including `@sovrasdk/extension-api` (the extension SDK)
 - `extensions/*` — first-party extensions (`storage`, `web-hosting`, `vps`)
 
 The kernel ships with no active features. Capabilities live in extensions, which depend only on
@@ -25,8 +25,8 @@ the SDK and own their own prefixed database tables.
 - **TypeScript everywhere**, strict mode. No `any` unless unavoidable and justified.
 - **No comments in source.** Code should be self-explanatory through naming and structure.
 - **No stubs or placeholders.** Land complete, working features.
-- **Errors** use the `SovraError` class with a canonical code from `@sovra/contracts`. Never throw bare strings across module boundaries.
-- **Validation** uses zod schemas defined in `@sovra/contracts` as the single source of truth.
+- **Errors** use the `SovraError` class with a canonical code from `@sovrasdk/contracts`. Never throw bare strings across module boundaries.
+- **Validation** uses zod schemas defined in `@sovrasdk/contracts` as the single source of truth.
 - **Security**: secrets (passwords, tokens, SSH credentials, content keys) are never stored or logged in plaintext. Client-side encryption keys never reach the server. Extensions only receive a capability if the matching permission was approved by the user.
 
 ## Extensions

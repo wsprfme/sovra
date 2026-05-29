@@ -17,10 +17,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@sovra/cid": "workspace:*",
-    "@sovra/contracts": "workspace:*",
-    "@sovra/extension-api": "workspace:*",
-    "@sovra/site-manifest": "workspace:*"
+    "@sovrasdk/cid": "workspace:*",
+    "@sovrasdk/contracts": "workspace:*",
+    "@sovrasdk/extension-api": "workspace:*",
+    "@sovrasdk/site-manifest": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

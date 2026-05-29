@@ -1,8 +1,8 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { computeCid, isValidCid, verifyContent } from '@sovra/cid';
-import { SovraError } from '@sovra/contracts';
+import { computeCid, isValidCid, verifyContent } from '@sovrasdk/cid';
+import { SovraError } from '@sovrasdk/contracts';
 import { eq, sql } from 'drizzle-orm';
 import type { Db } from '../db/index.js';
 import { blob } from '../db/schema.js';

@@ -1,7 +1,7 @@
 {
-  "name": "@sovra/site-manifest",
+  "name": "@sovrasdk/site-manifest",
   "version": "0.1.0",
-  "private": true,
+  "description": "Parser and printer for Sovra site manifests with guaranteed round-trip.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,17 +12,26 @@
       "default": "./dist/index.js"
     }
   },
+  "files": ["dist", "README.md"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsprfme/sovra.git",
+    "directory": "packages/site-manifest"
+  },
+  "homepage": "https://github.com/wsprfme/sovra/tree/main/packages/site-manifest",
+  "bugs": "https://github.com/wsprfme/sovra/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@sovra/cid": "workspace:*",
-    "@sovra/contracts": "workspace:*"
+    "@sovrasdk/cid": "workspace:*",
+    "@sovrasdk/contracts": "workspace:*"
   },
   "devDependencies": {
-    "fast-check": "^3.23.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

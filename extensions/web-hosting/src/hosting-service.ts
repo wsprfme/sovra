@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
-import { computeCid } from '@sovra/cid';
-import { SovraError } from '@sovra/contracts';
-import type { ScopedDb, StorageCapability } from '@sovra/extension-api';
-import { parseManifest, printManifest, type SiteManifest } from '@sovra/site-manifest';
+import { computeCid } from '@sovrasdk/cid';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ScopedDb, StorageCapability } from '@sovrasdk/extension-api';
+import { parseManifest, printManifest, type SiteManifest } from '@sovrasdk/site-manifest';
 import { normalizePath, resolveIndex, type SiteFile } from './manifest.js';
 
 export interface ServedFile {

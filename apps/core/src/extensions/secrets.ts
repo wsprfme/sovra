@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
-import { SovraError } from '@sovra/contracts';
-import type { SecretsCapability } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { SecretsCapability } from '@sovrasdk/extension-api';
 
 const IV_LEN = 12;
 

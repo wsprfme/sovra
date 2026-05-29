@@ -1,6 +1,6 @@
 'use client';
 
-import { encryptContent, decryptContent, type EncMeta } from '@sovra/crypto';
+import { encryptContent, decryptContent, type EncMeta } from '@sovrasdk/crypto';
 
 const KEY_STORAGE = 'sovra_content_key';
 

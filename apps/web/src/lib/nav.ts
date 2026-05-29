@@ -1,4 +1,4 @@
-import type { ExtensionRecord } from '@sovra/contracts';
+import type { ExtensionRecord } from '@sovrasdk/contracts';
 import type { NavItem } from '@/components/Sidebar';
 
 const FIRST_PARTY_ROUTES: Record<string, Record<string, string>> = {

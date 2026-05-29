@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import { storageClient } from '@/lib/storage-client';
 
 export interface MutationResult {

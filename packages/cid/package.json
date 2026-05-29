@@ -1,7 +1,7 @@
 {
-  "name": "@sovra/cid",
+  "name": "@sovrasdk/cid",
   "version": "0.1.0",
-  "private": true,
+  "description": "BLAKE3 content addressing and integrity verification for Sovra.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,17 +12,26 @@
       "default": "./dist/index.js"
     }
   },
+  "files": ["dist", "README.md"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsprfme/sovra.git",
+    "directory": "packages/cid"
+  },
+  "homepage": "https://github.com/wsprfme/sovra/tree/main/packages/cid",
+  "bugs": "https://github.com/wsprfme/sovra/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@noble/hashes": "^1.7.0",
-    "@sovra/contracts": "workspace:*"
+    "@sovrasdk/contracts": "workspace:*"
   },
   "devDependencies": {
-    "fast-check": "^3.23.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

@@ -1,4 +1,4 @@
-import { SovraError, type ExtensionManifest, type ExtensionRecord, type Permission } from '@sovra/contracts';
+import { SovraError, type ExtensionManifest, type ExtensionRecord, type Permission } from '@sovrasdk/contracts';
 import { ExtensionRegistry } from './registry.js';
 import { buildCatalog, type CatalogEntry } from './catalog.js';
 import { parseManifest } from './manifest.js';

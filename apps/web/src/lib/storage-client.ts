@@ -1,6 +1,6 @@
 import 'server-only';
 import { coreClient } from './core-client';
-import type { EncMeta } from '@sovra/crypto';
+import type { EncMeta } from '@sovrasdk/crypto';
 
 export interface FileEntry {
   id: string;

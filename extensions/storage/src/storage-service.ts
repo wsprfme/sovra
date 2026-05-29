@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { SovraError } from '@sovra/contracts';
-import type { ScopedDb, StorageCapability } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ScopedDb, StorageCapability } from '@sovrasdk/extension-api';
 import { generateThumbnail, isImageMime } from './thumbnail.js';
 import type { Album, EncMeta, FileObject, Folder, UploadInput, Visibility } from './types.js';
 

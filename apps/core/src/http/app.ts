@@ -1,5 +1,5 @@
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import type { Services } from '../services.js';
 import { registerInternalRoutes } from './internal-routes.js';
 import { registerPublicRoutes } from './public-routes.js';

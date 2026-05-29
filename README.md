@@ -81,13 +81,20 @@ Browser ──► Caddy (reverse proxy, automatic HTTPS)
 
 | Package | Responsibility |
 |---------|----------------|
-| `@sovra/contracts` | Shared zod schemas, types, and the canonical error model |
-| `@sovra/cid` | BLAKE3 content addressing and integrity verification |
-| `@sovra/crypto` | Argon2id KDF + AES-256-GCM convergent encryption |
-| `@sovra/site-manifest` | Parser/printer for site manifests (round-trip guaranteed) |
-| `@sovra/extension-api` | The SDK extensions implement (DB, migrations, capabilities, routing) |
+| `@sovrasdk/contracts` | Shared zod schemas, types, and the canonical error model |
+| `@sovrasdk/cid` | BLAKE3 content addressing and integrity verification |
+| `@sovrasdk/crypto` | Argon2id KDF + AES-256-GCM convergent encryption |
+| `@sovrasdk/site-manifest` | Parser/printer for site manifests (round-trip guaranteed) |
+| `@sovrasdk/extension-api` | The SDK extensions implement (DB, migrations, capabilities, routing) |
 
 ## For developers
+
+The extension SDK is published on npm under the [`@sovrasdk`](https://www.npmjs.com/org/sovrasdk)
+scope:
+
+```bash
+npm install @sovrasdk/extension-api
+```
 
 Extensions get a scoped database with a migration runner — declare your schema, the kernel runs
 the migrations on enable, and table names are auto-prefixed per extension. You also get the

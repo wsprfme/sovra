@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { eq } from 'drizzle-orm';
-import { SovraError, type AuthMode } from '@sovra/contracts';
+import { SovraError, type AuthMode } from '@sovrasdk/contracts';
 import type { Db } from '../db/index.js';
 import { account } from '../db/schema.js';
 import { hashPassword, verifyPassword } from './password.js';

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { SovraError, authModeSchema, permissionSchema, type Permission } from '@sovra/contracts';
+import { SovraError, authModeSchema, permissionSchema, type Permission } from '@sovrasdk/contracts';
 import type { Services } from '../services.js';
 
 interface SessionBody {

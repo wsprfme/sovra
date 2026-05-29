@@ -1,4 +1,4 @@
-import type { Permission } from '@sovra/contracts';
+import type { Permission } from '@sovrasdk/contracts';
 
 export interface StorageCapability {
   put(content: Uint8Array): Promise<string>;

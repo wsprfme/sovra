@@ -1,5 +1,5 @@
-import { SovraError } from '@sovra/contracts';
-import type { ExtensionContext, ExtensionRouter, SovraExtension } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ExtensionContext, ExtensionRouter, SovraExtension } from '@sovrasdk/extension-api';
 import { StorageService } from './storage-service.js';
 import { ShareService } from './share-service.js';
 import { migrations } from './migrations.js';

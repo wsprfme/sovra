@@ -23,7 +23,7 @@ An extension is a workspace package that exports:
    `deactivate`.
 
 ```ts
-import { extensionManifestSchema } from '@sovra/contracts';
+import { extensionManifestSchema } from '@sovrasdk/contracts';
 
 export const myManifest = extensionManifestSchema.parse({
   id: 'notes',
@@ -49,7 +49,7 @@ pass through `ctx.db.table(name)` is automatically prefixed with `ext_<id>_`, so
 never collide or read each other's tables.
 
 ```ts
-import type { Migration } from '@sovra/extension-api';
+import type { Migration } from '@sovrasdk/extension-api';
 
 export const migrations: Migration[] = [
   {

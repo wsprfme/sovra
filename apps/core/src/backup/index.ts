@@ -3,7 +3,7 @@ import { mkdir, readdir, readFile, rm, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { createGzip, createGunzip } from 'node:zlib';
 import { pipeline } from 'node:stream/promises';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import { SCHEMA_VERSION } from '../db/index.js';
 
 export interface BackupManifest {

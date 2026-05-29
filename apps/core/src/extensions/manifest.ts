@@ -1,4 +1,4 @@
-import { extensionManifestSchema, SovraError, type ExtensionManifest } from '@sovra/contracts';
+import { extensionManifestSchema, SovraError, type ExtensionManifest } from '@sovrasdk/contracts';
 
 export function parseManifest(input: unknown): ExtensionManifest {
   const result = extensionManifestSchema.safeParse(input);
