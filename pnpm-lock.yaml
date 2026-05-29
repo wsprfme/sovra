@@ -41,12 +41,18 @@ importers:
       '@sovra/crypto':
         specifier: workspace:*
         version: link:../../packages/crypto
+      '@sovra/ext-storage':
+        specifier: workspace:*
+        version: link:../../extensions/storage
+      '@sovra/ext-vps':
+        specifier: workspace:*
+        version: link:../../extensions/vps
+      '@sovra/ext-web-hosting':
+        specifier: workspace:*
+        version: link:../../extensions/web-hosting
       '@sovra/extension-api':
         specifier: workspace:*
         version: link:../../packages/extension-api
-      '@sovra/site-manifest':
-        specifier: workspace:*
-        version: link:../../packages/site-manifest
       better-sqlite3:
         specifier: ^11.7.0
         version: 11.10.0
@@ -56,9 +62,6 @@ importers:
       fastify:
         specifier: ^5.2.1
         version: 5.8.5
-      sharp:
-        specifier: ^0.33.5
-        version: 0.33.5
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.12
@@ -104,20 +107,30 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.19)
 
+  extensions/storage:
+    dependencies:
+      '@sovra/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@sovra/extension-api':
+        specifier: workspace:*
+        version: link:../../packages/extension-api
+      sharp:
+        specifier: ^0.33.5
+        version: 0.33.5
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   extensions/vps:
     dependencies:
       '@sovra/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@sovra/core':
-        specifier: workspace:*
-        version: link:../../apps/core
       '@sovra/extension-api':
         specifier: workspace:*
         version: link:../../packages/extension-api
-      drizzle-orm:
-        specifier: ^0.38.3
-        version: 0.38.4(@types/better-sqlite3@7.6.13)(@types/react@19.2.15)(better-sqlite3@11.10.0)(react@19.2.6)
       ssh2:
         specifier: ^1.16.0
         version: 1.17.0
@@ -125,15 +138,9 @@ importers:
       '@types/ssh2':
         specifier: ^1.15.1
         version: 1.15.5
-      better-sqlite3:
-        specifier: ^11.7.0
-        version: 11.10.0
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.19.19)
 
   extensions/web-hosting:
     dependencies:
@@ -143,31 +150,16 @@ importers:
       '@sovra/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@sovra/core':
-        specifier: workspace:*
-        version: link:../../apps/core
       '@sovra/extension-api':
         specifier: workspace:*
         version: link:../../packages/extension-api
       '@sovra/site-manifest':
         specifier: workspace:*
         version: link:../../packages/site-manifest
-      drizzle-orm:
-        specifier: ^0.38.3
-        version: 0.38.4(@types/better-sqlite3@7.6.13)(@types/react@19.2.15)(better-sqlite3@11.10.0)(react@19.2.6)
     devDependencies:
-      better-sqlite3:
-        specifier: ^11.7.0
-        version: 11.10.0
-      fast-check:
-        specifier: ^3.23.2
-        version: 3.23.2
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.19.19)
 
   packages/cid:
     dependencies:

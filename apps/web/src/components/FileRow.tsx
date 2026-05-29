@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import type { FileEntry } from '@/lib/core-client';
+import type { FileEntry } from '@/lib/storage-client';
 import { trashFileAction, createShareAction } from '@/app/actions/storage';
 
 function formatSize(bytes: number): string {

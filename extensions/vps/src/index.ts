@@ -1,9 +1,11 @@
+export { vpsManifest } from './ext-manifest.js';
+export { createVpsExtension } from './extension.js';
 export {
   VpsService,
   type AddConnectionInput,
   type VpsCredentials,
   type VpsStatus,
-  type Encryptor,
+  type VpsConnectionInfo,
 } from './vps-service.js';
 export {
   Ssh2Client,
@@ -13,4 +15,4 @@ export {
   type SshConnectOptions,
   type SshExecResult,
 } from './ssh.js';
-export { createVpsExtension, type VpsDeps } from './extension.js';
+export { migrations } from './migrations.js';

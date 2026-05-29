@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-29",
+  "extensions": [
+    {
+      "id": "storage",
+      "name": "Storage",
+      "version": "0.1.0",
+      "description": "Private drive, photo galleries, and sharing backed by content-addressed blobs.",
+      "author": "Sovra",
+      "permissions": ["storage:read", "storage:write"],
+      "source": "bundled",
+      "homepage": "https://github.com/wsprfme/sovra/tree/main/extensions/storage"
+    },
+    {
+      "id": "web-hosting",
+      "name": "Web Hosting",
+      "version": "0.1.0",
+      "description": "Publish static sites with versioned deploys, custom domains, and automatic TLS.",
+      "author": "Sovra",
+      "permissions": ["storage:read", "storage:write", "proxy:manage", "net:outbound:dns", "net:outbound:http"],
+      "source": "bundled",
+      "homepage": "https://github.com/wsprfme/sovra/tree/main/extensions/web-hosting"
+    },
+    {
+      "id": "vps",
+      "name": "VPS Control",
+      "version": "0.1.0",
+      "description": "Manage remote servers over SSH: live status, service control, and a console.",
+      "author": "Sovra",
+      "permissions": ["net:outbound:ssh"],
+      "source": "bundled",
+      "homepage": "https://github.com/wsprfme/sovra/tree/main/extensions/vps"
+    }
+  ]
+}

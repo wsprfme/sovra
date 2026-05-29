@@ -5,8 +5,14 @@
 	}
 }
 
-# Primary dashboard domain (set by setup wizard via the SOVRA_PRIMARY_DOMAIN env).
-# Falls back to serving on all hostnames during first-run setup.
+# First-run / no-domain access: serve the dashboard over plain HTTP on the
+# server's IP (or any hostname not otherwise matched). Once the wizard sets a
+# primary domain, that hostname gets automatic HTTPS via the block below.
+:80 {
+	reverse_proxy 127.0.0.1:3000
+}
+
+# Primary dashboard domain (set SOVRA_PRIMARY_DOMAIN, then reload caddy).
 {$SOVRA_PRIMARY_DOMAIN:localhost} {
 	reverse_proxy 127.0.0.1:3000
 }

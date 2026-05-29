@@ -14,20 +14,15 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@sovra/contracts": "workspace:*",
-    "@sovra/core": "workspace:*",
     "@sovra/extension-api": "workspace:*",
-    "drizzle-orm": "^0.38.3",
     "ssh2": "^1.16.0"
   },
   "devDependencies": {
     "@types/ssh2": "^1.15.1",
-    "better-sqlite3": "^11.7.0",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

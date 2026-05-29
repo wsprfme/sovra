@@ -11,5 +11,5 @@ export default async function Home() {
   if (!token) {
     redirect('/login');
   }
-  redirect('/files');
+  redirect('/dashboard');
 }

@@ -1,46 +1,24 @@
 import { coreClient } from '@/lib/core-client';
+import { ExtensionCard } from '@/components/ExtensionCard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ExtensionsPage() {
-  const { extensions } = await coreClient.listExtensions();
+  const { catalog } = await coreClient.catalog();
 
   return (
     <div>
       <h1 className="page-title">Extensions</h1>
-      {extensions.length === 0 ? (
-        <div className="card muted">
-          No extensions installed. First-party extensions (Web Hosting, VPS) can be installed from
-          the catalog once published.
-        </div>
-      ) : (
-        <div className="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Extension</th>
-                <th>Version</th>
-                <th>Status</th>
-                <th>Permissions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {extensions.map((ext) => (
-                <tr key={ext.id}>
-                  <td>{ext.id}</td>
-                  <td>{ext.version}</td>
-                  <td>
-                    <span className={`badge ${ext.status === 'enabled' ? 'enabled' : ''}`}>
-                      {ext.status}
-                    </span>
-                  </td>
-                  <td className="muted">{ext.permissions.join(', ') || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <p className="muted" style={{ marginTop: '-0.9rem', marginBottom: '1.4rem', maxWidth: '60ch' }}>
+        Install capabilities into your platform. Each extension lists the permissions it needs
+        before it can run. Only enable extensions you trust.
+      </p>
+
+      <div className="ext-list">
+        {catalog.map((entry) => (
+          <ExtensionCard key={entry.manifest.id} entry={entry} />
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { SovraError, type SovraErrorShape } from '@sovra/contracts';
+import { SovraError, type SovraErrorShape, type ExtensionRecord } from '@sovra/contracts';
 
 const CORE_URL = process.env.SOVRA_CORE_URL ?? 'http://127.0.0.1:8787';
 const INTERNAL_TOKEN = process.env.SOVRA_INTERNAL_TOKEN ?? '';
@@ -52,68 +52,65 @@ async function call<T>(path: string, options: RequestOptions = {}): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface CatalogListing {
+  manifest: {
+    id: string;
+    name: string;
+    version: string;
+    description: string;
+    author: string;
+    permissions: string[];
+    contributes?: { nav?: ExtensionNav[] };
+  };
+  installed: boolean;
+  status: 'installed' | 'enabled' | 'disabled' | 'available';
+}
+
+export interface ExtensionNav {
+  id: string;
+  title: string;
+  icon: string;
+  panel: string;
+}
+
 export const coreClient = {
-  status: () => call<{ hasAccount: boolean; schemaVersion: number }>('/internal/status', { withSession: false }),
+  status: () =>
+    call<{ hasAccount: boolean; schemaVersion: number; primaryDomain: string }>('/internal/status', {
+      withSession: false,
+    }),
   setup: (body: { username: string; authMode: string; password?: string; pubkey?: string }) =>
     call<{ accountId: string }>('/internal/setup', { method: 'POST', body, withSession: false }),
   login: (body: { username: string; password?: string; challenge?: string; signature?: string }) =>
     call<{ token: string }>('/internal/login', { method: 'POST', body, withSession: false }),
   logout: (token: string) =>
     call<{ ok: boolean }>('/internal/logout', { method: 'POST', body: { token }, withSession: false }),
-  listFiles: (path: string) =>
-    call<{ files: FileEntry[] }>('/internal/files', { query: { path } }),
-  moveFile: (id: string, parentPath: string) =>
-    call<FileEntry>(`/internal/files/${id}/move`, { method: 'POST', body: { parentPath } }),
-  trashFile: (id: string) => call<{ ok: boolean }>(`/internal/files/${id}/trash`, { method: 'POST' }),
-  restoreFile: (id: string) => call<FileEntry>(`/internal/files/${id}/restore`, { method: 'POST' }),
-  createAlbum: (name: string) =>
-    call<{ id: string; name: string }>('/internal/albums', { method: 'POST', body: { name } }),
-  addToAlbum: (albumId: string, fileId: string) =>
-    call<{ ok: boolean }>(`/internal/albums/${albumId}/items`, { method: 'POST', body: { fileId } }),
-  createShare: (body: {
-    targetType: 'file' | 'album';
-    targetId: string;
-    mode: 'public' | 'restricted';
-    allowedIdentities?: string[];
-    expiresInSeconds?: number;
-    wrappedKey?: string;
-  }) => call<ShareEntry>('/internal/shares', { method: 'POST', body }),
-  revokeShare: (token: string) => call<{ ok: boolean }>(`/internal/shares/${token}`, { method: 'DELETE' }),
-  listExtensions: () => call<{ extensions: ExtensionEntry[] }>('/internal/extensions'),
+
+  listExtensions: () => call<{ extensions: ExtensionRecord[] }>('/internal/extensions'),
+  catalog: () => call<{ catalog: CatalogListing[] }>('/internal/extensions/catalog'),
+  installExtension: (id: string) =>
+    call<ExtensionRecord>('/internal/extensions/install', { method: 'POST', body: { id } }),
+  enableExtension: (id: string, permissions: string[]) =>
+    call<{ ok: boolean }>(`/internal/extensions/${id}/enable`, { method: 'POST', body: { permissions } }),
+  disableExtension: (id: string) =>
+    call<{ ok: boolean }>(`/internal/extensions/${id}/disable`, { method: 'POST' }),
+  uninstallExtension: (id: string, deleteData: boolean) =>
+    call<{ ok: boolean }>(`/internal/extensions/${id}`, {
+      method: 'DELETE',
+      query: deleteData ? { deleteData: 'true' } : {},
+    }),
+
+  ext: <T>(
+    id: string,
+    method: 'GET' | 'POST' | 'DELETE',
+    path: string,
+    body?: unknown,
+    query?: Record<string, string>,
+  ) =>
+    call<T>(`/internal/ext/${id}${path}`, { method, body, query }),
+
   listAudit: (action?: string) =>
     call<{ entries: AuditEntry[] }>('/internal/audit', action ? { query: { action } } : {}),
 };
-
-export interface FileEntry {
-  id: string;
-  parentPath: string;
-  name: string;
-  cid: string;
-  size: number;
-  mime: string;
-  visibility: 'public' | 'private';
-  encMeta: import('@sovra/crypto').EncMeta | null;
-  thumbCid: string | null;
-  createdAt: number;
-  updatedAt: number;
-  trashedAt: number | null;
-}
-
-export interface ShareEntry {
-  token: string;
-  targetType: 'file' | 'album';
-  targetId: string;
-  mode: 'public' | 'restricted';
-  expiresAt: number | null;
-  revoked: boolean;
-}
-
-export interface ExtensionEntry {
-  id: string;
-  version: string;
-  status: 'installed' | 'enabled' | 'disabled';
-  permissions: string[];
-}
 
 export interface AuditEntry {
   action: string;

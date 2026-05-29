@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { FileEntry } from '@/lib/core-client';
+import type { FileEntry } from '@/lib/storage-client';
 import { decryptDownloaded } from '@/lib/browser-crypto';
 
 export function PhotoTile({ photo }: { photo: FileEntry }) {

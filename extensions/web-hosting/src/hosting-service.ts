@@ -1,16 +1,9 @@
 import { randomBytes } from 'node:crypto';
-import { and, desc, eq } from 'drizzle-orm';
 import { computeCid } from '@sovra/cid';
 import { SovraError } from '@sovra/contracts';
-import { type Db, schema, ContentStore } from '@sovra/core';
-import {
-  parseManifest,
-  printManifest,
-  type SiteManifest,
-} from '@sovra/site-manifest';
+import type { ScopedDb, StorageCapability } from '@sovra/extension-api';
+import { parseManifest, printManifest, type SiteManifest } from '@sovra/site-manifest';
 import { normalizePath, resolveIndex, type SiteFile } from './manifest.js';
-
-const { site, siteManifest } = schema;
 
 export interface ServedFile {
   content: Uint8Array;
@@ -38,21 +31,51 @@ function mimeFor(path: string): string {
   return MIME_BY_EXT[ext] ?? 'application/octet-stream';
 }
 
-export class HostingService {
-  constructor(
-    private readonly db: Db,
-    private readonly store: ContentStore,
-    private readonly now: () => number = Date.now,
-  ) {}
+interface SiteRow {
+  id: string;
+  name: string;
+  active_manifest_id: string | null;
+  created_at: number;
+}
 
-  createSite(name: string): { id: string } {
+interface ManifestRow {
+  id: string;
+  site_id: string;
+  version: number;
+  manifest_text: string;
+  created_at: number;
+}
+
+export class HostingService {
+  private readonly sites: string;
+  private readonly manifests: string;
+
+  constructor(
+    private readonly db: ScopedDb,
+    private readonly store: StorageCapability,
+    private readonly now: () => number = Date.now,
+  ) {
+    this.sites = db.table('site');
+    this.manifests = db.table('site_manifest');
+  }
+
+  createSite(name: string): { id: string; name: string } {
     const id = randomBytes(12).toString('hex');
-    this.db.insert(site).values({ id, name, activeManifestId: null, createdAt: this.now() }).run();
-    return { id };
+    this.db.run(
+      `INSERT INTO ${this.sites} (id, name, active_manifest_id, created_at) VALUES (?, ?, NULL, ?)`,
+      [id, name, this.now()],
+    );
+    return { id, name };
+  }
+
+  listSites(): Array<{ id: string; name: string; createdAt: number }> {
+    return this.db
+      .all<SiteRow>(`SELECT * FROM ${this.sites} ORDER BY created_at DESC`)
+      .map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at }));
   }
 
   async deploy(siteId: string, files: SiteFile[], domain: string | null = null): Promise<SiteManifest> {
-    const siteRow = this.db.select().from(site).where(eq(site.id, siteId)).get();
+    const siteRow = this.db.get<SiteRow>(`SELECT * FROM ${this.sites} WHERE id = ?`, [siteId]);
     if (!siteRow) throw new SovraError('not_found', `site ${siteId} not found`);
 
     const entries: { path: string; cid: string }[] = [];
@@ -61,59 +84,45 @@ export class HostingService {
       entries.push({ path: normalizePath(f.path), cid });
     }
 
-    const prevVersion = this.db
-      .select()
-      .from(siteManifest)
-      .where(eq(siteManifest.siteId, siteId))
-      .orderBy(desc(siteManifest.version))
-      .get();
-    const version = (prevVersion?.version ?? 0) + 1;
+    const prev = this.db.get<{ version: number }>(
+      `SELECT version FROM ${this.manifests} WHERE site_id = ? ORDER BY version DESC LIMIT 1`,
+      [siteId],
+    );
+    const version = (prev?.version ?? 0) + 1;
 
-    const manifest: SiteManifest = {
-      version,
-      domain,
-      timestamp: this.now(),
-      entries,
-    };
+    const manifest: SiteManifest = { version, domain, timestamp: this.now(), entries };
     const manifestText = printManifest(manifest);
     const manifestId = randomBytes(12).toString('hex');
-    this.db
-      .insert(siteManifest)
-      .values({ id: manifestId, siteId, version, manifestText, createdAt: this.now() })
-      .run();
-    this.db.update(site).set({ activeManifestId: manifestId }).where(eq(site.id, siteId)).run();
+    this.db.run(
+      `INSERT INTO ${this.manifests} (id, site_id, version, manifest_text, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [manifestId, siteId, version, manifestText, this.now()],
+    );
+    this.db.run(`UPDATE ${this.sites} SET active_manifest_id = ? WHERE id = ?`, [manifestId, siteId]);
     return manifest;
   }
 
   listVersions(siteId: string): Array<{ id: string; version: number; createdAt: number }> {
     return this.db
-      .select()
-      .from(siteManifest)
-      .where(eq(siteManifest.siteId, siteId))
-      .orderBy(desc(siteManifest.version))
-      .all()
-      .map((r) => ({ id: r.id, version: r.version, createdAt: r.createdAt }));
+      .all<ManifestRow>(`SELECT * FROM ${this.manifests} WHERE site_id = ? ORDER BY version DESC`, [siteId])
+      .map((r) => ({ id: r.id, version: r.version, createdAt: r.created_at }));
   }
 
   rollback(siteId: string, manifestId: string): void {
-    const row = this.db
-      .select()
-      .from(siteManifest)
-      .where(and(eq(siteManifest.siteId, siteId), eq(siteManifest.id, manifestId)))
-      .get();
+    const row = this.db.get<ManifestRow>(
+      `SELECT * FROM ${this.manifests} WHERE site_id = ? AND id = ?`,
+      [siteId, manifestId],
+    );
     if (!row) throw new SovraError('not_found', `manifest ${manifestId} not found for site`);
-    this.db.update(site).set({ activeManifestId: manifestId }).where(eq(site.id, siteId)).run();
+    this.db.run(`UPDATE ${this.sites} SET active_manifest_id = ? WHERE id = ?`, [manifestId, siteId]);
   }
 
   activeManifest(siteId: string): SiteManifest | null {
-    const siteRow = this.db.select().from(site).where(eq(site.id, siteId)).get();
-    if (!siteRow?.activeManifestId) return null;
-    const row = this.db
-      .select()
-      .from(siteManifest)
-      .where(eq(siteManifest.id, siteRow.activeManifestId))
-      .get();
-    return row ? parseManifest(row.manifestText) : null;
+    const siteRow = this.db.get<SiteRow>(`SELECT * FROM ${this.sites} WHERE id = ?`, [siteId]);
+    if (!siteRow?.active_manifest_id) return null;
+    const row = this.db.get<ManifestRow>(`SELECT * FROM ${this.manifests} WHERE id = ?`, [
+      siteRow.active_manifest_id,
+    ]);
+    return row ? parseManifest(row.manifest_text) : null;
   }
 
   async serve(siteId: string, requestPath: string): Promise<ServedFile> {

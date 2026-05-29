@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { SovraError, authModeSchema } from '@sovra/contracts';
+import { SovraError, authModeSchema, permissionSchema, type Permission } from '@sovra/contracts';
 import type { Services } from '../services.js';
 
 interface SessionBody {
@@ -14,7 +14,8 @@ function requireAccount(services: Services, headers: Record<string, unknown>): s
 export function registerInternalRoutes(app: FastifyInstance, services: Services): void {
   app.get('/internal/status', async () => ({
     hasAccount: services.auth.hasAccount(),
-    schemaVersion: 1,
+    schemaVersion: 2,
+    primaryDomain: services.config.primaryDomain,
   }));
 
   app.post('/internal/setup', async (req) => {
@@ -65,85 +66,46 @@ export function registerInternalRoutes(app: FastifyInstance, services: Services)
     return { ok: true };
   });
 
-  app.get('/internal/files', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const path = (req.query as { path?: string }).path ?? '/';
-    return { files: services.storage.list(path) };
-  });
-
-  app.post('/internal/files/:id/move', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const { id } = req.params as { id: string };
-    const body = req.body as { parentPath?: string };
-    if (!body.parentPath) throw new SovraError('validation_error', 'parentPath required');
-    return services.storage.move(id, body.parentPath);
-  });
-
-  app.post('/internal/files/:id/trash', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const { id } = req.params as { id: string };
-    services.storage.trash(id);
-    return { ok: true };
-  });
-
-  app.post('/internal/files/:id/restore', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const { id } = req.params as { id: string };
-    return services.storage.restore(id);
-  });
-
-  app.post('/internal/albums', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const body = req.body as { name?: string };
-    if (!body.name) throw new SovraError('validation_error', 'name required');
-    return services.storage.createAlbum(body.name);
-  });
-
-  app.post('/internal/albums/:id/items', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const { id } = req.params as { id: string };
-    const body = req.body as { fileId?: string };
-    if (!body.fileId) throw new SovraError('validation_error', 'fileId required');
-    services.storage.addToAlbum(id, body.fileId);
-    return { ok: true };
-  });
-
-  app.post('/internal/shares', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const body = req.body as {
-      targetType?: 'file' | 'album';
-      targetId?: string;
-      mode?: 'public' | 'restricted';
-      allowedIdentities?: string[];
-      expiresInSeconds?: number;
-      wrappedKey?: string;
-    };
-    if (!body.targetType || !body.targetId || !body.mode) {
-      throw new SovraError('validation_error', 'targetType, targetId, mode required');
-    }
-    const link = services.shares.create({
-      targetType: body.targetType,
-      targetId: body.targetId,
-      mode: body.mode,
-      allowedIdentities: body.allowedIdentities,
-      expiresInSeconds: body.expiresInSeconds,
-      wrappedKey: body.wrappedKey,
-    });
-    services.audit.record('share.create', 'admin', 'ok', { token: link.token });
-    return link;
-  });
-
-  app.delete('/internal/shares/:token', async (req) => {
-    requireAccount(services, req.headers as Record<string, unknown>);
-    const { token } = req.params as { token: string };
-    services.shares.revoke(token);
-    services.audit.record('share.revoke', 'admin', 'ok', { token });
-    return { ok: true };
-  });
-
   app.get('/internal/extensions', async (req) => {
     requireAccount(services, req.headers as Record<string, unknown>);
     return { extensions: services.extensions.list() };
+  });
+
+  app.get('/internal/extensions/catalog', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    return { catalog: services.extensions.available() };
+  });
+
+  app.post('/internal/extensions/install', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const body = req.body as { id?: string };
+    if (!body.id) throw new SovraError('validation_error', 'id required');
+    const record = services.extensions.installFromCatalog(body.id);
+    return record;
+  });
+
+  app.post('/internal/extensions/:id/enable', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const { id } = req.params as { id: string };
+    const body = req.body as { permissions?: string[] };
+    const approved: Permission[] = (body.permissions ?? []).map((p) => permissionSchema.parse(p));
+    await services.extensions.enable(id, approved);
+    return { ok: true };
+  });
+
+  app.post('/internal/extensions/:id/disable', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const { id } = req.params as { id: string };
+    await services.extensions.disable(id);
+    return { ok: true };
+  });
+
+  app.delete('/internal/extensions/:id', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const { id } = req.params as { id: string };
+    const deleteData = (req.query as { deleteData?: string }).deleteData === 'true';
+    await services.extensions.uninstall(id, { deleteData });
+    return { ok: true };
   });
 
   app.all('/internal/ext/:id/*', async (req) => {
@@ -152,7 +114,7 @@ export function registerInternalRoutes(app: FastifyInstance, services: Services)
     const wildcard = (req.params as Record<string, string>)['*'] ?? '';
     const path = '/' + wildcard;
     const method = req.method.toLowerCase() as 'get' | 'post' | 'delete';
-    return services.extensions.dispatch(id, method, path, {
+    return services.extensions.registry.dispatch(id, method, path, {
       params: {},
       query: req.query as Record<string, string>,
       body: req.body ?? null,

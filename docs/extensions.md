@@ -1,73 +1,136 @@
 # Writing Sovra Extensions
 
-Extensions add capabilities to the core platform without bloating it. The built-in `web-hosting` and `vps` extensions are reference implementations.
+Sovra is a kernel plus an ecosystem of extensions. The kernel provides identity, a
+content-addressed blob store, a scoped database, a reverse-proxy controller, audit, and backups.
+Everything a user actually interacts with — a drive, photo galleries, web hosting, server
+control — is an extension. The first-party `storage`, `web-hosting`, and `vps` extensions are
+reference implementations.
+
+## Philosophy
+
+Extensions run in-process and can use any npm package, like a WordPress plugin. The trade-off is
+trust: a third-party extension you enable runs with the capabilities you approve. The kernel makes
+that bargain transparent — every extension declares the permissions it needs, and the user sees
+and approves them before it is enabled. Install what you trust.
 
 ## Anatomy
 
-An extension is a package with:
+An extension is a workspace package that exports:
 
-1. An **`extension.json`** manifest declaring its id, version, requested permissions, and UI contributions.
-2. A module exporting a factory that returns a `SovraExtension` (`activate` / `deactivate`).
+1. A typed **manifest** (`ExtensionManifest`) declaring id, version, permissions, and UI
+   contributions.
+2. A **factory** returning a `SovraExtension` with optional `migrations` and `activate` /
+   `deactivate`.
 
-```jsonc
-{
-  "id": "web-hosting",
-  "name": "Web Hosting",
-  "version": "0.1.0",
-  "engineVersion": "^0.1.0",
-  "permissions": ["storage:read", "storage:write", "proxy:manage", "net:outbound:dns"],
-  "contributes": {
-    "apiNamespace": "web-hosting",
-    "uiPanels": [{ "id": "sites", "title": "Sites", "entry": "ui/sites.html" }]
-  }
-}
+```ts
+import { extensionManifestSchema } from '@sovra/contracts';
+
+export const myManifest = extensionManifestSchema.parse({
+  id: 'notes',
+  name: 'Notes',
+  version: '0.1.0',
+  engineVersion: '^0.1.0',
+  description: 'A tiny notes app.',
+  author: 'you',
+  permissions: [],
+  contributes: {
+    apiNamespace: 'notes',
+    nav: [{ id: 'notes', title: 'Notes', icon: 'list', panel: 'notes' }],
+    uiPanels: [{ id: 'notes', title: 'Notes', entry: 'ui/notes' }],
+  },
+});
 ```
 
-## Permissions
+## The database — no boilerplate
 
-Permissions are a closed enumeration enforced by the core. An extension only receives a capability handle (`ctx.storage`, `ctx.proxy`, `ctx.net`) if the matching permission was approved by the user at enable time.
+Extensions get a **scoped database** (`ctx.db`) and a **migration runner**. Declare your schema as
+migrations; the kernel runs the pending ones when the extension is enabled. Every table name you
+pass through `ctx.db.table(name)` is automatically prefixed with `ext_<id>_`, so extensions can
+never collide or read each other's tables.
+
+```ts
+import type { Migration } from '@sovra/extension-api';
+
+export const migrations: Migration[] = [
+  {
+    id: '001-init',
+    up: (db) =>
+      db.exec(`CREATE TABLE ${db.table('note')} (id TEXT PRIMARY KEY, body TEXT NOT NULL)`),
+  },
+];
+```
+
+```ts
+ctx.db.run(`INSERT INTO ${ctx.db.table('note')} (id, body) VALUES (?, ?)`, [id, body]);
+const rows = ctx.db.all(`SELECT * FROM ${ctx.db.table('note')}`);
+```
+
+`ctx.db` also exposes `get`, `transaction`, and `exec`. Migrations are tracked per-extension and
+applied exactly once.
+
+## Permissions and capabilities
+
+Permissions are a closed enumeration enforced by the kernel. A capability handle is injected into
+`ctx` only if its permission was approved at enable time.
 
 | Permission | Grants |
 |------------|--------|
-| `storage:read` / `storage:write` | Read/write the content store via `ctx.storage` |
-| `proxy:manage` | Manage reverse-proxy routes and domains via `ctx.proxy` |
-| `net:outbound:dns` | Outbound calls for DNS/API providers |
+| `storage:read` / `storage:write` | The content store via `ctx.storage` (`put`/`get`/`has`/`release`) |
+| `proxy:manage` | Reverse-proxy routes and domains via `ctx.proxy` |
+| `net:outbound:http` | Outbound HTTP via `ctx.net.fetch` |
+| `net:outbound:dns` | Outbound calls to DNS/API providers via `ctx.net` |
 | `net:outbound:ssh` | Outbound SSH connections |
-| `net:outbound:http` | General outbound HTTP |
 
-Requesting a permission you don't use will be flagged in review. Request the minimum.
+Two capabilities are always available and need no permission, because they only touch the
+extension's own data:
 
-## Lifecycle
+- `ctx.kv` — a namespaced key/value store.
+- `ctx.secrets` — `encrypt` / `decrypt` for storing tokens and credentials at rest. The key is
+  derived from the server secret and the extension id.
+
+`ctx.env` exposes a small set of platform values (e.g. `SOVRA_SERVER_IP`, `SOVRA_PRIMARY_DOMAIN`).
+
+## Routing
+
+`activate(ctx, router)` registers HTTP handlers:
 
 ```ts
-import type { SovraExtension, ExtensionContext, ExtensionRouter } from '@sovra/extension-api';
+activate(ctx, router) {
+  router.get('/notes', () => ({ status: 200, body: ctx.db.all(/* ... */) }));
+  router.post('/notes', (req) => { /* ... */ return { status: 200, body: { ok: true } }; });
 
-export function createMyExtension(deps): SovraExtension {
-  return {
-    activate(ctx: ExtensionContext, router: ExtensionRouter) {
-      router.get('/things', async (req) => {
-        const items = ctx.kv.list();
-        return { status: 200, body: { items } };
-      });
-    },
-    deactivate() {
-      // release resources
-    },
-  };
+  // Public (unauthenticated) routes, reachable at /ext/<id>/<path>:
+  router.public.get('/feed/:token', (req) => ({ status: 200, body: load(req.params.token) }));
+
+  // Serve arbitrary hostnames (e.g. hosted sites). Return null to pass through.
+  router.host(async (req) => {
+    const site = lookup(req.host);
+    return site ? { status: 200, body: render(site, req.path) } : null;
+  });
 }
 ```
 
-- Routes are mounted under `/internal/ext/<id>/<path>` and reached by the dashboard through the BFF.
-- `ctx.kv` is a per-extension key/value store, namespaced and isolated from other extensions.
-- `ctx.audit.record(action, result, detail)` writes to the audit log (secrets are redacted automatically).
-- Thrown errors are caught by the host: a failing extension is isolated and never crashes the core or other extensions.
+- Authenticated routes are mounted at `/internal/ext/<id>/<path>` and reached by the dashboard
+  through the BFF.
+- Public routes are mounted at `/ext/<id>/<path>` and rate-limited.
+- Path params (`:id`) are parsed and provided on `req.params`.
 
-## Isolation
+## UI
 
-- Extension code runs inside the core engine but is wrapped so failures are contained.
-- Extension UI panels are rendered in sandboxed iframes in the dashboard and communicate via `postMessage`.
-- Data created by an extension is preserved on uninstall unless the user explicitly requests deletion.
+Declare `contributes.nav` entries to add sidebar links. First-party extensions ship native
+dashboard pages; community extensions render their panel in a sandboxed iframe served from the
+extension's `ui/<panel>` route.
 
-## Testing
+## Lifecycle and isolation
 
-Write tests against your services with an in-memory database (`openDatabase(':memory:')`) and mock external systems (SSH, Cloudflare, Caddy) behind interfaces, as the first-party extensions do.
+- Thrown errors are caught by the host; a failing extension is isolated and never crashes the
+  kernel or other extensions.
+- `deactivate` should release any long-lived resources.
+- On uninstall, an extension's data (tables, kv, migration records) is preserved unless the user
+  explicitly asks to delete it.
+
+## Distribution
+
+First-party extensions are bundled in the published catalog. Extensions can also be installed from
+a catalog index, a URL, a Git repository, or an uploaded archive. See `catalog/index.json` for the
+catalog format.

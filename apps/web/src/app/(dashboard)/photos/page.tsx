@@ -1,11 +1,19 @@
 import { coreClient } from '@/lib/core-client';
+import { storageClient } from '@/lib/storage-client';
+import { isExtensionEnabled } from '@/lib/nav';
+import { ExtensionDisabled } from '@/components/ExtensionDisabled';
 import { Uploader } from '@/components/Uploader';
 import { PhotoTile } from '@/components/PhotoTile';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PhotosPage() {
-  const { files } = await coreClient.listFiles('/');
+  const { extensions } = await coreClient.listExtensions();
+  if (!isExtensionEnabled(extensions, 'storage')) {
+    return <ExtensionDisabled name="Storage" />;
+  }
+
+  const { files } = await storageClient.listFiles('/');
   const photos = files.filter((f) => f.trashedAt === null && f.mime.startsWith('image/'));
 
   return (

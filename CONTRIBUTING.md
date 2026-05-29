@@ -7,40 +7,43 @@ Thanks for your interest in improving Sovra. This document covers the developmen
 ```bash
 pnpm install
 pnpm build
-pnpm test
+pnpm typecheck
 ```
 
 The repo is a pnpm + Turborepo monorepo:
 
-- `apps/core` — Fastify core engine
-- `apps/web` — Next.js dashboard
-- `packages/*` — shared libraries
-- `extensions/*` — first-party extensions
+- `apps/core` — Fastify kernel (identity, content store, extension host, proxy, audit, backups)
+- `apps/web` — Next.js dashboard (BFF)
+- `packages/*` — shared libraries, including `@sovra/extension-api` (the extension SDK)
+- `extensions/*` — first-party extensions (`storage`, `web-hosting`, `vps`)
+
+The kernel ships with no active features. Capabilities live in extensions, which depend only on
+the SDK and own their own prefixed database tables.
 
 ## Conventions
 
 - **TypeScript everywhere**, strict mode. No `any` unless unavoidable and justified.
-- **No comments in source.** Code should be self-explanatory through naming and structure. Tests document behavior.
+- **No comments in source.** Code should be self-explanatory through naming and structure.
+- **No stubs or placeholders.** Land complete, working features.
 - **Errors** use the `SovraError` class with a canonical code from `@sovra/contracts`. Never throw bare strings across module boundaries.
 - **Validation** uses zod schemas defined in `@sovra/contracts` as the single source of truth.
-- **Security**: secrets (passwords, tokens, SSH credentials, content keys) are never stored or logged in plaintext. Client-side encryption keys never reach the server.
+- **Security**: secrets (passwords, tokens, SSH credentials, content keys) are never stored or logged in plaintext. Client-side encryption keys never reach the server. Extensions only receive a capability if the matching permission was approved by the user.
 
-## Tests
+## Extensions
 
-- Every feature ships with tests in the same package.
-- Invariants are covered by property-based tests (`fast-check`): content addressing, encryption round-trips, manifest round-trips, album idempotency, permission gating, and domain authorization.
-- Run a single package: `pnpm --filter @sovra/core test`.
-- Test files (`*.test.ts`) are kept local and are not published to the repository.
+New capabilities should be extensions, not kernel changes. See [docs/extensions.md](./docs/extensions.md).
+Add a kernel feature only when it is a shared primitive every extension needs (e.g. the content
+store or the scoped database).
 
 ## Before opening a PR
 
 ```bash
 pnpm typecheck
 pnpm build
-pnpm test
 ```
 
-Push to a feature branch (never directly to `main`) and open a pull request describing the change and what you tested.
+Push to a feature branch (never directly to `main`) and open a pull request describing the change
+and what you tested.
 
 ## License
 
