@@ -14,7 +14,6 @@ out/
 .turbo/
 *.tsbuildinfo
 
-# Environment & secrets
 .env
 .env.*
 !.env.example
@@ -23,7 +22,6 @@ out/
 secrets/
 *.local
 
-# Runtime data
 data/
 content-store/
 uploads/
@@ -32,7 +30,6 @@ uploads/
 *.db
 backups/
 
-# Logs
 logs/
 *.log
 npm-debug.log*
@@ -40,13 +37,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Caches
 .cache/
 .eslintcache
 .parcel-cache/
 coverage/
 
-# Editor / OS
 .DS_Store
 Thumbs.db
 *.swp
@@ -54,9 +49,13 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Caddy / proxy runtime
 caddy/data/
 caddy/config/
 
-# Kiro working files (specs, internal config)
 .kiro/
+
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+**/__tests__/**

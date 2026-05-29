@@ -151,4 +151,25 @@ export function registerInternalRoutes(app: FastifyInstance, services: Services)
     const action = (req.query as { action?: string }).action;
     return { entries: services.audit.list(action ? { action } : {}) };
   });
+
+  app.post('/internal/backup', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const body = req.body as { outputPath?: string };
+    if (!body.outputPath) throw new SovraError('validation_error', 'outputPath required');
+    const manifest = await services.backup.create(body.outputPath);
+    services.audit.record('backup.create', 'admin', 'ok', { path: body.outputPath });
+    return manifest;
+  });
+
+  app.post('/internal/restore', async (req) => {
+    requireAccount(services, req.headers as Record<string, unknown>);
+    const body = req.body as { archivePath?: string };
+    if (!body.archivePath) throw new SovraError('validation_error', 'archivePath required');
+    const manifest = await services.backup.restore(body.archivePath, {
+      dbPath: services.config.dbPath,
+      contentDir: services.config.contentDir,
+    });
+    services.audit.record('backup.restore', 'admin', 'ok', { path: body.archivePath });
+    return manifest;
+  });
 }

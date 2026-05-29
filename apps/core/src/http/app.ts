@@ -3,6 +3,7 @@ import { SovraError } from '@sovra/contracts';
 import type { Services } from '../services.js';
 import { registerInternalRoutes } from './internal-routes.js';
 import { registerPublicRoutes } from './public-routes.js';
+import { RateLimiter } from './rate-limit.js';
 
 function sendError(reply: FastifyReply, err: unknown): void {
   if (SovraError.is(err)) {
@@ -58,6 +59,20 @@ export function buildApp(services: Services): FastifyInstance {
       if (token !== services.config.internalToken) {
         sendError(reply, new SovraError('unauthorized', 'invalid internal token'));
       }
+    }
+  });
+
+  const publicLimiter = new RateLimiter(services.config.rateLimit);
+  const isPublicLimited = (url: string): boolean =>
+    url.startsWith('/s/') || url.startsWith('/upload') || url.startsWith('/internal/login');
+
+  app.addHook('onRequest', async (req: FastifyRequest, reply: FastifyReply) => {
+    if (!isPublicLimited(req.url)) return;
+    const result = publicLimiter.check(req.ip);
+    if (!result.allowed) {
+      reply.header('retry-after', Math.ceil(result.retryAfterMs / 1000));
+      reply.header('x-ratelimit-reset', String(Date.now() + result.retryAfterMs));
+      sendError(reply, new SovraError('rate_limited', 'too many requests'));
     }
   });
 

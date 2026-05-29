@@ -8,6 +8,7 @@ export interface CoreConfig {
   internalToken: string;
   quotaBytes: number;
   caddyAdminUrl: string;
+  rateLimit: { windowMs: number; max: number };
 }
 
 function envNumber(name: string, fallback: number): number {
@@ -26,5 +27,9 @@ export function loadConfig(): CoreConfig {
     internalToken: process.env.SOVRA_INTERNAL_TOKEN ?? randomBytes(32).toString('hex'),
     quotaBytes: envNumber('SOVRA_QUOTA_BYTES', 50 * 1024 * 1024 * 1024),
     caddyAdminUrl: process.env.SOVRA_CADDY_ADMIN_URL ?? 'http://127.0.0.1:2019',
+    rateLimit: {
+      windowMs: envNumber('SOVRA_RATELIMIT_WINDOW_MS', 60_000),
+      max: envNumber('SOVRA_RATELIMIT_MAX', 120),
+    },
   };
 }

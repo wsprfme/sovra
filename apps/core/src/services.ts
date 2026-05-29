@@ -8,6 +8,7 @@ import { AuditLogger } from './audit/index.js';
 import { AuthService } from './auth/index.js';
 import { ExtensionRegistry } from './extensions/registry.js';
 import { CaddyAdminClient, ProxyController, RegistryDomainAuthorizer } from './proxy/index.js';
+import { BackupService } from './backup/index.js';
 import type { CoreConfig } from './config.js';
 
 export interface Services {
@@ -20,6 +21,7 @@ export interface Services {
   auth: AuthService;
   extensions: ExtensionRegistry;
   proxy: ProxyController;
+  backup: BackupService;
   close: () => void;
 }
 
@@ -47,6 +49,11 @@ export function createServices(config: CoreConfig): Services {
     { record: (action, actor, result, detail) => audit.record(action, actor, result, detail) },
   );
 
+  const backup = new BackupService(
+    { dbPath: config.dbPath, contentDir: config.contentDir },
+    () => extensions.list().map((e) => e.id),
+  );
+
   return {
     config,
     dbHandle,
@@ -57,6 +64,7 @@ export function createServices(config: CoreConfig): Services {
     auth,
     extensions,
     proxy,
+    backup,
     close: () => dbHandle.close(),
   };
 }
