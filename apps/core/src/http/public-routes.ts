@@ -39,7 +39,8 @@ export function registerPublicRoutes(app: FastifyInstance, services: Services): 
 
   app.get('/_tls/authorize', async (req, reply) => {
     const host = (req.query as { domain?: string }).domain;
-    if (host && services.proxy.authorizeTls(host)) {
+    const isPrimary = host !== undefined && host === services.config.primaryDomain;
+    if (host && (isPrimary || services.proxy.authorizeTls(host))) {
       return reply.code(200).send('ok');
     }
     return reply.code(403).send('denied');
