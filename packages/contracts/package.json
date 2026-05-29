@@ -1,7 +1,7 @@
 {
-  "name": "@sovra/contracts",
+  "name": "@sovrasdk/contracts",
   "version": "0.1.0",
-  "private": true,
+  "description": "Shared zod schemas, types, and the canonical error model for the Sovra extension SDK.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,6 +12,17 @@
       "default": "./dist/index.js"
     }
   },
+  "files": ["dist", "README.md"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsprfme/sovra.git",
+    "directory": "packages/contracts"
+  },
+  "homepage": "https://github.com/wsprfme/sovra/tree/main/packages/contracts",
+  "bugs": "https://github.com/wsprfme/sovra/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -20,7 +31,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

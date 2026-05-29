@@ -1,5 +1,5 @@
-import { SovraError } from '@sovra/contracts';
-import type { ProxyCapability, ScopedDb } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ProxyCapability, ScopedDb } from '@sovrasdk/extension-api';
 
 export type TlsStrategy = 'http-01' | 'dns-01' | 'cloudflare-origin';
 export type DomainStatus = 'pending' | 'active';

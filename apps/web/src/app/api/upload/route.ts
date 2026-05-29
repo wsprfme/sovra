@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import { getSessionToken } from '@/lib/session';
 
 const CORE_URL = process.env.SOVRA_CORE_URL ?? 'http://127.0.0.1:8787';

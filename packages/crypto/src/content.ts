@@ -1,5 +1,5 @@
 import { blake3 } from '@noble/hashes/blake3';
-import type { EncMeta } from '@sovra/contracts';
+import type { EncMeta } from '@sovrasdk/contracts';
 import { fromBase64, toBase64 } from './encoding.js';
 
 const IV_LEN = 12;

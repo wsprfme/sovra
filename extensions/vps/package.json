@@ -17,8 +17,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@sovra/contracts": "workspace:*",
-    "@sovra/extension-api": "workspace:*",
+    "@sovrasdk/contracts": "workspace:*",
+    "@sovrasdk/extension-api": "workspace:*",
     "ssh2": "^1.16.0"
   },
   "devDependencies": {

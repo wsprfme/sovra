@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 import { coreClient } from '@/lib/core-client';
 import { clearSessionCookie, setSessionCookie } from '@/lib/session';
 

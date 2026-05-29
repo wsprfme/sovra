@@ -1,5 +1,5 @@
 import { blake3 } from '@noble/hashes/blake3';
-import { SovraError, type ErrorCode } from '@sovra/contracts';
+import { SovraError, type ErrorCode } from '@sovrasdk/contracts';
 
 const CID_PREFIX = 'b3-';
 const HEX_LEN = 64;

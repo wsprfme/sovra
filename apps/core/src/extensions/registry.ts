@@ -5,7 +5,7 @@ import {
   type ExtensionManifest,
   type ExtensionRecord,
   type Permission,
-} from '@sovra/contracts';
+} from '@sovrasdk/contracts';
 import type {
   ExtensionContext,
   ExtensionRouteHandler,
@@ -17,7 +17,7 @@ import type {
   StorageCapability,
   ProxyCapability,
   NetCapability,
-} from '@sovra/extension-api';
+} from '@sovrasdk/extension-api';
 import type { Db } from '../db/index.js';
 import { extension, extKv, extMigration } from '../db/schema.js';
 import { parseManifest } from './manifest.js';

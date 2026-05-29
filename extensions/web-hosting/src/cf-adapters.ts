@@ -1,5 +1,5 @@
-import { SovraError } from '@sovra/contracts';
-import type { NetCapability, ScopedDb } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { NetCapability, ScopedDb } from '@sovrasdk/extension-api';
 import type { CloudflareApi, CloudflareZone, TokenStore } from './cloudflare.js';
 
 const CF_API = 'https://api.cloudflare.com/client/v4';

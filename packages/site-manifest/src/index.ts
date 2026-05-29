@@ -1,5 +1,5 @@
-import { isValidCid } from '@sovra/cid';
-import { SovraError } from '@sovra/contracts';
+import { isValidCid } from '@sovrasdk/cid';
+import { SovraError } from '@sovrasdk/contracts';
 
 export interface SiteManifestEntry {
   path: string;

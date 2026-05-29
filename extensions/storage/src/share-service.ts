@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { SovraError } from '@sovra/contracts';
-import type { ScopedDb } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ScopedDb } from '@sovrasdk/extension-api';
 import type { CreateShareInput, ShareLink } from './types.js';
 
 interface ShareRow {

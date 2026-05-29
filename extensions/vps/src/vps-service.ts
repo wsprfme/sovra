@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { SovraError } from '@sovra/contracts';
-import type { ScopedDb, SecretsCapability } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ScopedDb, SecretsCapability } from '@sovrasdk/extension-api';
 import type { SshClient, SshConnectOptions, SshSession, SshShellChannel } from './ssh.js';
 
 export interface VpsCredentials {

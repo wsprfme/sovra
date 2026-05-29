@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
-import { SovraError } from '@sovra/contracts';
-import type { ScopedDb } from '@sovra/extension-api';
+import { SovraError } from '@sovrasdk/contracts';
+import type { ScopedDb } from '@sovrasdk/extension-api';
 
 const TABLE_TOKEN = /^[a-z][a-z0-9_]*$/;
 

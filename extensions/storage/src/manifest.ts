@@ -1,4 +1,4 @@
-import { extensionManifestSchema, type ExtensionManifest } from '@sovra/contracts';
+import { extensionManifestSchema, type ExtensionManifest } from '@sovrasdk/contracts';
 
 export const storageManifest: ExtensionManifest = extensionManifestSchema.parse({
   id: 'storage',

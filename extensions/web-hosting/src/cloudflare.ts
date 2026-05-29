@@ -1,4 +1,4 @@
-import { SovraError } from '@sovra/contracts';
+import { SovraError } from '@sovrasdk/contracts';
 
 export interface CloudflareZone {
   id: string;
