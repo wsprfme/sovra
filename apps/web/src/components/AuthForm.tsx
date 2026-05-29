@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import type { ActionState } from '@/app/actions/auth';
-import { deriveAndStoreKey } from '@/lib/browser-crypto';
+import { deriveAndStoreKey, isCryptoAvailable } from '@/lib/browser-crypto';
 
 interface Props {
   mode: 'setup' | 'login';
@@ -13,6 +13,11 @@ const initial: ActionState = { error: null };
 
 export function AuthForm({ mode, action }: Props) {
   const [state, formAction, pending] = useActionState(action, initial);
+  const [secure, setSecure] = useState(true);
+
+  useEffect(() => {
+    setSecure(isCryptoAvailable());
+  }, []);
 
   async function clientAction(formData: FormData) {
     const password = String(formData.get('password') ?? '');
@@ -29,6 +34,17 @@ export function AuthForm({ mode, action }: Props) {
         <h1 className="page-title">
           {mode === 'setup' ? 'Create your admin account' : 'Sign in'}
         </h1>
+
+        {!secure && (
+          <div className="card notice" style={{ marginBottom: '1rem' }}>
+            <strong>Insecure connection</strong>
+            <p className="muted" style={{ margin: '0.4rem 0 0', fontSize: '0.82rem' }}>
+              You are on plain HTTP, so the browser disables encryption. You can still sign in, but
+              client-side file encryption stays off until you set a domain and switch to HTTPS.
+            </p>
+          </div>
+        )}
+
         <form action={clientAction}>
           {mode === 'setup' && <input type="hidden" name="authMode" value="password" />}
           <div className="field">
@@ -46,7 +62,7 @@ export function AuthForm({ mode, action }: Props) {
               required
             />
           </div>
-          {mode === 'setup' && (
+          {mode === 'setup' && secure && (
             <p className="muted" style={{ fontSize: '0.82rem', marginTop: '-0.4rem' }}>
               Your password also derives the key that encrypts your private files. Keep it safe; it
               cannot be recovered.

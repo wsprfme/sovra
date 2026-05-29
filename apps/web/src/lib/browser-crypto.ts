@@ -4,6 +4,14 @@ import { encryptContent, decryptContent, type EncMeta } from '@sovrasdk/crypto';
 
 const KEY_STORAGE = 'sovra_content_key';
 
+export function isCryptoAvailable(): boolean {
+  return (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.subtle !== 'undefined' &&
+    typeof crypto.subtle.importKey === 'function'
+  );
+}
+
 export function storeContentKey(keyB64: string): void {
   sessionStorage.setItem(KEY_STORAGE, keyB64);
 }
@@ -18,7 +26,10 @@ function getContentKey(): Uint8Array {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
-export async function deriveAndStoreKey(password: string): Promise<void> {
+export async function deriveAndStoreKey(password: string): Promise<boolean> {
+  if (!isCryptoAvailable()) {
+    return false;
+  }
   const enc = new TextEncoder();
   const salt = enc.encode('sovra-content-key-v1');
   const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, [
@@ -31,6 +42,7 @@ export async function deriveAndStoreKey(password: string): Promise<void> {
   );
   const keyB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
   storeContentKey(keyB64);
+  return true;
 }
 
 export async function encryptForUpload(
