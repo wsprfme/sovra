@@ -20,6 +20,7 @@ beforeEach(async () => {
     port: 0,
     internalToken: TOKEN,
     quotaBytes: Number.MAX_SAFE_INTEGER,
+    caddyAdminUrl: 'http://127.0.0.1:2019',
   });
   app = buildApp(services);
   await app.ready();

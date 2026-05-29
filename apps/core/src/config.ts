@@ -7,6 +7,7 @@ export interface CoreConfig {
   port: number;
   internalToken: string;
   quotaBytes: number;
+  caddyAdminUrl: string;
 }
 
 function envNumber(name: string, fallback: number): number {
@@ -24,5 +25,6 @@ export function loadConfig(): CoreConfig {
     port: envNumber('SOVRA_CORE_PORT', 8787),
     internalToken: process.env.SOVRA_INTERNAL_TOKEN ?? randomBytes(32).toString('hex'),
     quotaBytes: envNumber('SOVRA_QUOTA_BYTES', 50 * 1024 * 1024 * 1024),
+    caddyAdminUrl: process.env.SOVRA_CADDY_ADMIN_URL ?? 'http://127.0.0.1:2019',
   };
 }

@@ -7,6 +7,7 @@ import { ShareService } from './storage/share-service.js';
 import { AuditLogger } from './audit/index.js';
 import { AuthService } from './auth/index.js';
 import { ExtensionRegistry } from './extensions/registry.js';
+import { CaddyAdminClient, ProxyController, RegistryDomainAuthorizer } from './proxy/index.js';
 import type { CoreConfig } from './config.js';
 
 export interface Services {
@@ -18,6 +19,7 @@ export interface Services {
   audit: AuditLogger;
   auth: AuthService;
   extensions: ExtensionRegistry;
+  proxy: ProxyController;
   close: () => void;
 }
 
@@ -31,6 +33,9 @@ export function createServices(config: CoreConfig): Services {
   const shares = new ShareService(dbHandle.db);
   const audit = new AuditLogger(dbHandle.db);
   const auth = new AuthService(dbHandle.db);
+  const authorizer = new RegistryDomainAuthorizer();
+  const caddy = new CaddyAdminClient(config.caddyAdminUrl);
+  const proxy = new ProxyController(caddy, authorizer);
   const extensions = new ExtensionRegistry(
     dbHandle.db,
     {
@@ -51,6 +56,7 @@ export function createServices(config: CoreConfig): Services {
     audit,
     auth,
     extensions,
+    proxy,
     close: () => dbHandle.close(),
   };
 }
