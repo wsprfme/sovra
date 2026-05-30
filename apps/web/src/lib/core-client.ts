@@ -57,6 +57,37 @@ async function call<T>(path: string, options: RequestOptions = {}): Promise<T> {
   return (await res.json()) as T;
 }
 
+interface ExtEnvelope {
+  status: number;
+  body: unknown;
+}
+
+async function extCall<T>(
+  id: string,
+  method: 'GET' | 'POST' | 'DELETE',
+  path: string,
+  body?: unknown,
+  query?: Record<string, string>,
+): Promise<T> {
+  const envelope = await call<ExtEnvelope>(`/internal/ext/${id}${path}`, { method, body, query });
+  if (
+    envelope &&
+    typeof envelope === 'object' &&
+    typeof envelope.status === 'number' &&
+    'body' in envelope
+  ) {
+    if (envelope.status >= 400) {
+      const b = envelope.body as { code?: string; message?: string } | null;
+      throw new SovraError(
+        (b?.code as SovraErrorShape['code']) ?? 'internal_error',
+        b?.message ?? `extension ${id} returned ${envelope.status}`,
+      );
+    }
+    return envelope.body as T;
+  }
+  return envelope as unknown as T;
+}
+
 export interface CatalogListing {
   manifest: {
     id: string;
@@ -110,8 +141,7 @@ export const coreClient = {
     path: string,
     body?: unknown,
     query?: Record<string, string>,
-  ) =>
-    call<T>(`/internal/ext/${id}${path}`, { method, body, query }),
+  ) => extCall<T>(id, method, path, body, query),
 
   listAudit: (action?: string) =>
     call<{ entries: AuditEntry[] }>('/internal/audit', action ? { query: { action } } : {}),
