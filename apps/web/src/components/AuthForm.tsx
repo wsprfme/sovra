@@ -12,20 +12,26 @@ interface Props {
 const initial: ActionState = { error: null };
 
 export function AuthForm({ mode, action }: Props) {
-  const [state, formAction, pending] = useActionState(action, initial);
   const [secure, setSecure] = useState(true);
+
+  const [state, formAction, pending] = useActionState(
+    async (prev: ActionState, formData: FormData): Promise<ActionState> => {
+      const password = String(formData.get('password') ?? '');
+      if (password) {
+        try {
+          await deriveAndStoreKey(password);
+        } catch {
+          setSecure(false);
+        }
+      }
+      return action(prev, formData);
+    },
+    initial,
+  );
 
   useEffect(() => {
     setSecure(isCryptoAvailable());
   }, []);
-
-  async function clientAction(formData: FormData) {
-    const password = String(formData.get('password') ?? '');
-    if (password) {
-      await deriveAndStoreKey(password);
-    }
-    return formAction(formData);
-  }
 
   return (
     <div className="center-screen">
@@ -45,7 +51,7 @@ export function AuthForm({ mode, action }: Props) {
           </div>
         )}
 
-        <form action={clientAction}>
+        <form action={formAction}>
           {mode === 'setup' && <input type="hidden" name="authMode" value="password" />}
           <div className="field">
             <label htmlFor="username">Username</label>
