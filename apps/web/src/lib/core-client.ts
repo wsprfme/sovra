@@ -1,5 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { SovraError, type SovraErrorShape, type ExtensionRecord } from '@sovrasdk/contracts';
 
 const CORE_URL = process.env.SOVRA_CORE_URL ?? 'http://127.0.0.1:8787';
@@ -19,7 +20,8 @@ async function call<T>(path: string, options: RequestOptions = {}): Promise<T> {
     'x-sovra-internal': INTERNAL_TOKEN,
   };
 
-  if (options.withSession !== false) {
+  const usesSession = options.withSession !== false;
+  if (usesSession) {
     const store = await cookies();
     const token = store.get(SESSION_COOKIE)?.value;
     if (token) headers['x-sovra-session'] = token;
@@ -43,6 +45,9 @@ async function call<T>(path: string, options: RequestOptions = {}): Promise<T> {
       shape = (await res.json()) as SovraErrorShape;
     } catch {
       shape = null;
+    }
+    if (usesSession && (res.status === 401 || shape?.code === 'unauthorized')) {
+      redirect('/login');
     }
     if (shape?.code) throw SovraError.fromJSON(shape);
     throw new SovraError('internal_error', `core request failed: ${res.status}`);
