@@ -50,59 +50,63 @@ export function HostingManager({ sites, domains, cloudflareConnected }: Props) {
     <div className="stack">
       <div className="card">
         <div className="stat-title">Sites</div>
-        <div className="row" style={{ marginTop: '0.7rem' }}>
+        <div className="form-row" style={{ marginTop: '0.7rem' }}>
           <input
             placeholder="my-site"
             value={siteName}
             onChange={(e) => setSiteName(e.target.value)}
-            style={{ maxWidth: '260px' }}
           />
           <button className="primary" disabled={pending} onClick={addSite}>
             Create site
           </button>
         </div>
         {sites.length > 0 && (
-          <table style={{ marginTop: '1rem' }}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>ID</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sites.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.name}</td>
-                  <td className="muted">{s.id}</td>
-                  <td className="muted">{new Date(s.createdAt).toLocaleDateString()}</td>
+          <div className="table-responsive" style={{ marginTop: '1rem' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>ID</th>
+                  <th>Created</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sites.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.name}</td>
+                    <td className="muted">{s.id}</td>
+                    <td className="muted">{new Date(s.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <div className="card">
         <div className="stat-title">Custom domains</div>
-        <div className="muted" style={{ fontSize: '0.82rem', margin: '0.3rem 0 0.7rem' }}>
-          Cloudflare: {cloudflareConnected ? 'connected' : 'not connected'}
+        <div className="muted" style={{ fontSize: '0.82rem', margin: '0.3rem 0 0.7rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <span>Cloudflare:</span>
+          <span className="cf-indicator">
+            <span className={`cf-dot ${cloudflareConnected ? 'connected' : ''}`} />
+            <span>{cloudflareConnected ? 'connected' : 'not connected'}</span>
+          </span>
         </div>
-        <div className="row" style={{ flexWrap: 'wrap' }}>
+        <div className="form-row">
           <input
             placeholder="example.com"
             value={domainName}
             onChange={(e) => setDomainName(e.target.value)}
-            style={{ maxWidth: '220px' }}
           />
-          <select value={siteId} onChange={(e) => setSiteId(e.target.value)} style={{ maxWidth: '220px' }}>
+          <select value={siteId} onChange={(e) => setSiteId(e.target.value)}>
             {sites.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}
           </select>
-          <label className="row" style={{ gap: '0.4rem' }}>
+          <label className="row" style={{ gap: '0.4rem', cursor: 'pointer', userSelect: 'none' }}>
             <input
               type="checkbox"
               checked={behindCf}
@@ -116,26 +120,28 @@ export function HostingManager({ sites, domains, cloudflareConnected }: Props) {
           </button>
         </div>
         {domains.length > 0 && (
-          <table style={{ marginTop: '1rem' }}>
-            <thead>
-              <tr>
-                <th>Domain</th>
-                <th>Status</th>
-                <th>TLS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {domains.map((d) => (
-                <tr key={d.name}>
-                  <td>{d.name}</td>
-                  <td>
-                    <span className={`badge ${d.status === 'active' ? 'enabled' : ''}`}>{d.status}</span>
-                  </td>
-                  <td className="muted">{d.tlsStrategy}</td>
+          <div className="table-responsive" style={{ marginTop: '1rem' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Status</th>
+                  <th>TLS</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {domains.map((d) => (
+                  <tr key={d.name}>
+                    <td>{d.name}</td>
+                    <td>
+                      <span className={`badge ${d.status === 'active' ? 'enabled' : ''}`}>{d.status}</span>
+                    </td>
+                    <td className="muted">{d.tlsStrategy}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

@@ -46,15 +46,14 @@ export function VpsManager({ connections }: { connections: VpsConnection[] }) {
         <p className="muted" style={{ fontSize: '0.82rem', margin: '0.3rem 0 0.7rem' }}>
           Credentials are encrypted at rest with a key derived from this server&apos;s secret.
         </p>
-        <div className="row" style={{ flexWrap: 'wrap' }}>
-          <input placeholder="host or IP" value={host} onChange={(e) => setHost(e.target.value)} style={{ maxWidth: '200px' }} />
-          <input placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} style={{ maxWidth: '160px' }} />
+        <div className="form-row">
+          <input placeholder="host or IP" value={host} onChange={(e) => setHost(e.target.value)} />
+          <input placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
           <input
             placeholder="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ maxWidth: '180px' }}
           />
           <button className="primary" disabled={pending} onClick={add}>
             Add

@@ -29,21 +29,23 @@ export default async function FilesPage() {
         <div className="card muted">No files yet. Upload your first file to get started.</div>
       ) : (
         <div className="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Size</th>
-                <th>Visibility</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {live.map((f) => (
-                <FileRow key={f.id} file={f} />
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th className="hide-mobile">Size</th>
+                  <th className="hide-mobile">Visibility</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {live.map((f) => (
+                  <FileRow key={f.id} file={f} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

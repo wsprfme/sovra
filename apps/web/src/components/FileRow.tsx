@@ -36,8 +36,8 @@ export function FileRow({ file }: { file: FileEntry }) {
   return (
     <tr>
       <td>{file.name}</td>
-      <td>{formatSize(file.size)}</td>
-      <td>
+      <td className="hide-mobile">{formatSize(file.size)}</td>
+      <td className="hide-mobile">
         <span className="badge">{file.visibility}</span>
       </td>
       <td>

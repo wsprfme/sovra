@@ -12,28 +12,30 @@ export default async function AuditPage() {
         <div className="card muted">No activity recorded yet.</div>
       ) : (
         <div className="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Action</th>
-                <th>Actor</th>
-                <th>Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e, i) => (
-                <tr key={i}>
-                  <td className="muted">{new Date(e.ts).toLocaleString()}</td>
-                  <td>{e.action}</td>
-                  <td>{e.actor}</td>
-                  <td>
-                    <span className={`badge ${e.result === 'ok' ? 'enabled' : ''}`}>{e.result}</span>
-                  </td>
+          <div className="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Action</th>
+                  <th className="hide-mobile">Actor</th>
+                  <th>Result</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {entries.map((e, i) => (
+                  <tr key={i}>
+                    <td className="muted">{new Date(e.ts).toLocaleString()}</td>
+                    <td>{e.action}</td>
+                    <td className="hide-mobile">{e.actor}</td>
+                    <td>
+                      <span className={`badge ${e.result === 'ok' ? 'enabled' : ''}`}>{e.result}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
